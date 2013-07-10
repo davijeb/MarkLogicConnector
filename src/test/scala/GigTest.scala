@@ -3,7 +3,7 @@ import org.openspaces.core.GigaSpace
 import org.openspaces.core.GigaSpaceConfigurer
 import com.gigaspaces.metadata.SpaceTypeDescriptorBuilder
 import com.gigaspaces.document.SpaceDocument
-import org.simeont.batch.ProcecessedOperationActionHolder
+import org.simeont.marklogicconnector.batch.ProcecessedOperationActionHolder
 
 object GigTest extends App {
 
