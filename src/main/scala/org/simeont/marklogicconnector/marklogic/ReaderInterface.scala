@@ -17,11 +17,11 @@ package org.simeont.marklogicconnector.marklogic
 
 import org.simeont.marklogicconnector.batch.ProcecessedOperationActionHolder
 import com.marklogic.xcc.Content
+import com.marklogic.xcc.ResultSequence
 
-trait WriterInterface {
-	def persistAll(batchHolder : ProcecessedOperationActionHolder) : Unit
+trait ReaderInterface {
+	def read(query : String) : ResultSequence
 
-	def persistSpaceDescriptor(content : Content) : Unit
+	def readMany(query : String) : ResultSequence
 
-	def addElementToDocument(uri : String, nodePath : String, newElement : String ) : Unit
 }

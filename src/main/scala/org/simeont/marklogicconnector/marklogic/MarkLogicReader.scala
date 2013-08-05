@@ -15,13 +15,23 @@
  */
 package org.simeont.marklogicconnector.marklogic
 
-import org.simeont.marklogicconnector.batch.ProcecessedOperationActionHolder
+import com.marklogic.xcc.ContentSource
+import com.marklogic.xcc.Session
+import com.marklogic.xcc.Request
+import com.marklogic.xcc.RequestOptions
 import com.marklogic.xcc.Content
+import org.simeont.marklogicconnector.batch.ProcecessedOperationActionHolder
+import java.util.logging.Logger
+import java.util.logging.Level
 
-trait WriterInterface {
-	def persistAll(batchHolder : ProcecessedOperationActionHolder) : Unit
+/**
+ *
+ */
+class MarkLogicReader(contentSource: ContentSource, nameSpace: String) extends ReaderInterface {
 
-	def persistSpaceDescriptor(content : Content) : Unit
+  private[this] val logger: Logger = Logger.getLogger(classOf[MarkLogicReader].getCanonicalName())
 
-	def addElementToDocument(uri : String, nodePath : String, newElement : String ) : Unit
+  override def read( query : String) = ???
+
+  override def readMany( query : String) = ???
 }

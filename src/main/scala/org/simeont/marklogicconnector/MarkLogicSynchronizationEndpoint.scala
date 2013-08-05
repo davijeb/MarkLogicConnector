@@ -36,18 +36,19 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
 
   private[this] val logger: Logger = Logger.getLogger(classOf[MarkLogicSynchronizationEndpoint].getCanonicalName())
 
+  private[this] val xmlExt = ".xml"
   /*
    * SpaceTypeDescriptor related persistence
    */
   override def onIntroduceType(introduceTypeData: IntroduceTypeData) = {
     val typeXML = SpaceDescriptorMarshaller marshallSpaceDesc introduceTypeData.getTypeDescriptor()
-    val uri = dirPath + "/spacedescriptors/" + introduceTypeData.getTypeDescriptor().getTypeName() + ".xml"
+    val uri = dirPath + "/spacedescriptors/" + introduceTypeData.getTypeDescriptor().getTypeName() + xmlExt
     writer.persistSpaceDescriptor(customContentFactory.generateContent(uri, typeXML))
 
   }
 
   override def onAddIndex(addIndexData: AddIndexData) = {
-    val uri = dirPath + "/spacedescriptors/" + addIndexData.getTypeName() + ".xml"
+    val uri = dirPath + "/spacedescriptors/" + addIndexData.getTypeName() + xmlExt
     addIndexData.getIndexes().foreach(index =>
       writer.addElementToDocument(uri, "/spacedesc/indexes", SpaceDescriptorMarshaller indexToXml (index)))
   }
@@ -69,7 +70,7 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
         {
           val idField = entry.getTypeDescriptor().getIdPropertyName()
           val idValue = (entry.getDataAsDocument().getProperty(idField)).toString
-          val uid = dirPath + "/" + idValue + ".xml"
+          val uid = dirPath + "/" + idValue + xmlExt
 
           entry.getDataSyncOperationType() match {
             case DataSyncOperationType.WRITE | DataSyncOperationType.UPDATE =>
@@ -79,7 +80,7 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
             case DataSyncOperationType.PARTIAL_UPDATE =>
               OperatinoActionProcessor.add(UpdateAction(uid, entry.getDataAsDocument), operatinoDataMap)
             case DataSyncOperationType.REMOVE_BY_UID => () //TODO
-            case DataSyncOperationType.CHANGE => () //TODO 
+            case DataSyncOperationType.CHANGE => () //TODO
           }
         })
 

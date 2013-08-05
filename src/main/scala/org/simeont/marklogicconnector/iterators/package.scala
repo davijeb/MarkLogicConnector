@@ -13,15 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.simeont.marklogicconnector.marklogic
+package org.simeont.marklogicconnector
 
-import org.simeont.marklogicconnector.batch.ProcecessedOperationActionHolder
-import com.marklogic.xcc.Content
-
-trait WriterInterface {
-	def persistAll(batchHolder : ProcecessedOperationActionHolder) : Unit
-
-	def persistSpaceDescriptor(content : Content) : Unit
-
-	def addElementToDocument(uri : String, nodePath : String, newElement : String ) : Unit
-}
+/**
+ * Iterators to return from MarkLogic
+ */
+package object iterators

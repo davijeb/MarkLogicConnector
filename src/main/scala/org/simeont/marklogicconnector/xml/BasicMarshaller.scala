@@ -44,7 +44,7 @@ class BasicMarshaller() extends Marshaller {
    * Marshals SpaceDocument to XML string using the grammar provided
    */
   def toXML(document: SpaceDocument): String = toXML(document,true)
-  
+
   private[this] def toXML(document: SpaceDocument, addXS : Boolean) : String = {
     openTag + document.getTypeName + {if(addXS) xs else ""} + endTag +
       (document.getProperties().map(x => propertyToXML(x._1, x._2))).mkString +
@@ -66,7 +66,7 @@ class BasicMarshaller() extends Marshaller {
   }
 
   //Helper method to create xml element for a property
-  private[this] def constructElement(name: String, typ: String, xml: String) = openTag + name  + " xs:type=\"" + 
+  private[this] def constructElement(name: String, typ: String, xml: String) = openTag + name  + " xs:type=\"" +
   typ + "\"" + endTag + xml + closedOpenTag + name + endTag
 
   /**
