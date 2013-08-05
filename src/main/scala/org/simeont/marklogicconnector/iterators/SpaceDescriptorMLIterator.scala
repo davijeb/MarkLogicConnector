@@ -24,9 +24,9 @@ import org.simeont.marklogicconnector.xml.SpaceDescriptorMarshaller
 import com.gigaspaces.metadata.SpaceTypeDescriptor
 import org.simeont.marklogicconnector.xml.Marshaller
 
-class ObjectMLIterator(resultSequence: ResultSequence, xmlMarshaller: Marshaller)
-  extends MLIterator[Object](resultSequence) {
+class SpaceDescriptorMLIterator(resultSequence: ResultSequence)
+  extends MLIterator[SpaceTypeDescriptor](resultSequence) {
 
-  override def fromXml(item: ResultItem): Object =
-    xmlMarshaller.fromXML(item.getItem().asString())
+  override def fromXml(item: ResultItem): SpaceTypeDescriptor =
+    SpaceDescriptorMarshaller.unmarshallSpaceDesc(item.getItem().asString())
 }

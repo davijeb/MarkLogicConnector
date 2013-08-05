@@ -19,10 +19,9 @@ import com.marklogic.xcc.ContentSource
 import com.marklogic.xcc.Session
 import com.marklogic.xcc.Request
 import com.marklogic.xcc.RequestOptions
-import com.marklogic.xcc.Content
-import org.simeont.marklogicconnector.batch.ProcecessedOperationActionHolder
 import java.util.logging.Logger
 import java.util.logging.Level
+import com.marklogic.xcc.ResultSequence
 
 /**
  *
@@ -31,7 +30,42 @@ class MarkLogicReader(contentSource: ContentSource, nameSpace: String) extends R
 
   private[this] val logger: Logger = Logger.getLogger(classOf[MarkLogicReader].getCanonicalName())
 
-  override def read( query : String) = ???
+  override def read(query: String): Object = {
+    try {
+      val session = contentSource.newSession()
+      val request = session.newAdhocQuery(query)
+      val result = session.submitRequest(request)
+      if (result.hasNext())
+        result.next
+      else
+        null
+    } catch {
+      case x: Throwable => {
+        val msg = "Cannot execute query due to " + x.getMessage()
+        logger.log(Level.SEVERE, msg)
+        null
+      }
+    }
+  }
 
-  override def readMany( query : String) = ???
+  override def readMany(query: String): ResultSequence = {
+    try {
+      val session = contentSource.newSession()
+      val request = session.newAdhocQuery(query)
+      val options = new RequestOptions
+      options.setCacheResult(false)
+      options.setRequestTimeLimit(Integer.MAX_VALUE)
+      options.setTimeoutMillis(Integer.MAX_VALUE)
+      request.setOptions(options)
+      session.submitRequest(request)
+    } catch {
+      case x: Throwable => {
+        val msg = "Cannot execute query due to " + x.getMessage()
+        logger.log(Level.SEVERE, msg)
+        null
+      }
+    }
+  }
+
 }
+

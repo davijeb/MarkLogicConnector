@@ -15,12 +15,10 @@
  */
 package org.simeont.marklogicconnector.marklogic
 
-import org.simeont.marklogicconnector.batch.ProcecessedOperationActionHolder
-import com.marklogic.xcc.Content
 import com.marklogic.xcc.ResultSequence
 
 trait ReaderInterface {
-	def read(query : String) : ResultSequence
+	def read(query : String) : Object
 
 	def readMany(query : String) : ResultSequence
 

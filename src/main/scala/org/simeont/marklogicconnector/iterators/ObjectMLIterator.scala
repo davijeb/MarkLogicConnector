@@ -15,17 +15,14 @@
  */
 package org.simeont.marklogicconnector.iterators
 
-import java.util.logging.Logger
-import java.lang.Throwable
-import com.gigaspaces.datasource.DataIterator
-import com.marklogic.xcc.ResultSequence
 import com.marklogic.xcc.ResultItem
-import org.simeont.marklogicconnector.xml.SpaceDescriptorMarshaller
-import com.gigaspaces.metadata.SpaceTypeDescriptor
+import com.marklogic.xcc.ResultSequence
+import org.simeont.marklogicconnector.xml.Marshaller
 
-class SpaceDescriptorMLIterator(resultSequence: ResultSequence)
-  extends MLIterator[SpaceTypeDescriptor](resultSequence) {
 
-  override def fromXml(item: ResultItem): SpaceTypeDescriptor =
-    SpaceDescriptorMarshaller.unmarshallSpaceDesc(item.getItem().asString())
+class ObjectMLIterator(resultSequence: ResultSequence, xmlMarshaller: Marshaller)
+  extends MLIterator[Object](resultSequence) {
+
+  override def fromXml(item: ResultItem): Object =
+    xmlMarshaller.fromXML(item.getItem().asString())
 }
