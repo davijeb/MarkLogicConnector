@@ -16,7 +16,12 @@
 package org.simeont.marklogicconnector.marklogic
 
 import org.simeont.marklogicconnector.batch.ProcecessedOperationActionHolder
+import com.marklogic.xcc.Content
 
 trait WriterInterface {
 	def persistAll(batchHolder : ProcecessedOperationActionHolder) : Unit
+	
+	def persistSpaceDescriptor(content : Content) : Unit
+	
+	def addElementToDocument(uri : String, nodePath : String, newElement : String ) : Unit
 }

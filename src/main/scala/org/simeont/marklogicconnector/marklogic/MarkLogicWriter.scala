@@ -21,34 +21,65 @@ import com.marklogic.xcc.Request
 import com.marklogic.xcc.RequestOptions
 import com.marklogic.xcc.Content
 import org.simeont.marklogicconnector.batch.ProcecessedOperationActionHolder
+import java.util.logging.Logger
+import java.util.logging.Level
 
 /**
  *
  */
-class MarkLogicWriter(contentSource: ContentSource, nameSpace : String) extends WriterInterface {
+class MarkLogicWriter(contentSource: ContentSource, nameSpace: String) extends WriterInterface {
 
-  //TODO check if it works
+  private[this] val logger: Logger = Logger.getLogger(classOf[MarkLogicWriter].getCanonicalName())
+
   def persistAll(batchHolder: ProcecessedOperationActionHolder) {
     val session = contentSource.newSession()
     session.setTransactionMode(Session.TransactionMode.UPDATE)
     try {
- 
+
       session.insertContent(batchHolder.contents.getOrElse(Array[Content]()))
-    
-      if(batchHolder.doDelete){
+
+      if (batchHolder.doDelete) {
         val delete = session.newAdhocQuery(batchHolder getDeleteXqueryCode nameSpace)
         session.submitRequest(delete)
       }
 
-      if(batchHolder.doUpdate){
+      if (batchHolder.doUpdate) {
         val update = session.newAdhocQuery(batchHolder getUpdateXqueryCode nameSpace)
         session.submitRequest(update)
       }
 
       session.commit()
-   
+
     } catch {
       case x: Throwable => { session.rollback(); throw x }
+    }
+  }
+
+  def persistSpaceDescriptor(content: Content) {
+    try {
+      val session = contentSource.newSession()
+      session.insertContent(content)
+    } catch {
+      case x: Throwable => {
+        val msg = "Cannot persist spacedescriptor with path: " + content.getUri() + " due to " + x.getMessage()
+        logger.log(Level.SEVERE, msg)
+      }
+    }
+  }
+
+  def addElementToDocument(uri: String, nodePath: String, newElement: String) {
+    try {
+      val query = " declare default element namespace \"" + nameSpace + "\"; " +
+        "xdmp:node-insert-child(doc(\"" + uri + "\")" + nodePath + "," + newElement + ")"
+      logger.info(query)
+      val session = contentSource.newSession()
+      val request = session.newAdhocQuery(query)
+      session.submitRequest(request)
+    } catch {
+      case x: Throwable => {
+        val msg = "Cannot update spacedescriptor with path: " + uri + " due to " + x.getMessage()
+        logger.log(Level.SEVERE, msg)
+      }
     }
   }
 }

@@ -64,8 +64,13 @@ class CustomContentFactory() {
     ContentFactory.newContent(uri, xml, provideContentCreateOptions)
 
   }
+  
+  def generateContent(uri: String, xml : String): Content = {
+    ContentFactory.newContent(uri, xml, provideContentCreateOptions)
+  }
 
   private[this] var contentCreateOptions: Option[ContentCreateOptions] = None
+  
   private[this] def provideContentCreateOptions: ContentCreateOptions = {
     contentCreateOptions match {
       case Some(cCO) => cCO

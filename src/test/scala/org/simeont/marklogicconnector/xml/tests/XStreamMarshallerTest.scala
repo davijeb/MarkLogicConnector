@@ -34,7 +34,7 @@ class XStreamMarshallerTest extends FunSuite {
     val spaceDocument = new SpaceDocument(docType)
 
     val string = marshaller.toXML(spaceDocument)
-    assert(string === "<test></test>")
+    assert(string === "<test xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"></test>")
   }
 
   test("should marshall integer in document") {
@@ -43,7 +43,7 @@ class XStreamMarshallerTest extends FunSuite {
     spaceDocument.setProperty("jint", new Integer(1))
 
     val string = marshaller.toXML(spaceDocument)
-    assert(string === "<test>" +
+    assert(string === "<test xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" +
     		"<jint xs:type=\"java.lang.Integer\">1</jint></test>")
   }
 
@@ -53,7 +53,7 @@ class XStreamMarshallerTest extends FunSuite {
     spaceDocument.setProperty("double", new Double(1))
 
     val string = marshaller.toXML(spaceDocument)
-    assert(string === "<test>" +
+    assert(string === "<test xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" +
     		"<double xs:type=\"java.lang.Double\">1.0</double></test>")
   }
 
@@ -65,7 +65,7 @@ class XStreamMarshallerTest extends FunSuite {
     spaceDocument.setProperty("list", list)
 
     val string = marshaller.toXML(spaceDocument)
-    assert(string === "<list-test>" +
+    assert(string === "<list-test xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" +
     		"<list xs:type=\"object\"><linked-list>\n  <int>1</int>\n  <int>2</int>\n</linked-list></list></list-test>")
   }
 
@@ -77,7 +77,7 @@ class XStreamMarshallerTest extends FunSuite {
     spaceDocumentOut.setProperty("document", spaceDocumentIn)
 
     val string = marshaller.toXML(spaceDocumentOut)
-    assert(string === "<outer>" +
+    assert(string === "<outer xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" +
     		"<document xs:type=\"SpaceDocument\"><inner><innerInt xs:type=\"java.lang.Integer\">1</innerInt>" +
     		"</inner></document></outer>")
   }
@@ -97,7 +97,7 @@ class XStreamMarshallerTest extends FunSuite {
     val uSpaceDocument = marshaller.fromXML(marshaller.toXML(spaceDocument))
     assert(uSpaceDocument === spaceDocument)
   }
-
+  
   test("should unmarshall scala list inside spacedocument") {
     val list: List[Integer] = List(1, 2, 3)
     val spaceDocument = new SpaceDocument("list-test")

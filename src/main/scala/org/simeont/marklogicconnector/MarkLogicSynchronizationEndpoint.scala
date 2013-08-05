@@ -15,6 +15,7 @@
  */
 package org.simeont.marklogicconnector
 
+import java.util.logging.Logger
 import scala.collection.mutable.{ Map => MMap }
 import com.gigaspaces.sync.AddIndexData
 import com.gigaspaces.sync.ConsolidationParticipantData
@@ -28,23 +29,31 @@ import org.simeont.marklogicconnector.factory.CustomContentFactory
 import org.simeont.marklogicconnector.marklogic.WriterInterface
 import org.simeont.marklogicconnector.batch.ProcecessedOperationActionHolder
 import org.simeont.marklogicconnector.batch.OperatinoActionProcessor
+import org.simeont.marklogicconnector.xml.SpaceDescriptorMarshaller
 
 class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactory, writer: WriterInterface,
   dirPath: String) extends SpaceSynchronizationEndpoint {
+
+  private[this] val logger: Logger = Logger.getLogger(classOf[MarkLogicSynchronizationEndpoint].getCanonicalName())
 
   /*
    * SpaceTypeDescriptor related persistence
    */
   override def onIntroduceType(introduceTypeData: IntroduceTypeData) = {
+    val typeXML = SpaceDescriptorMarshaller marshallSpaceDesc introduceTypeData.getTypeDescriptor()
+    val uri = dirPath + "/spacedescriptors/" + introduceTypeData.getTypeDescriptor().getTypeName() + ".xml"
+    writer.persistSpaceDescriptor(customContentFactory.generateContent(uri, typeXML))
 
   }
 
   override def onAddIndex(addIndexData: AddIndexData) = {
-    //add to document
+    val uri = dirPath + "/spacedescriptors/" + addIndexData.getTypeName() + ".xml"
+    addIndexData.getIndexes().foreach(index =>
+      writer.addElementToDocument(uri, "/spacedesc/indexes", SpaceDescriptorMarshaller indexToXml (index)))
   }
 
   /*
-   * Batch persistence
+   * Batch and Transaction persistence
    */
   override def onOperationsBatchSynchronization(batchData: OperationsBatchData): Unit =
     processOperationData(batchData.getBatchDataItems)
@@ -69,7 +78,8 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
               OperatinoActionProcessor.add(DeleteAction(uid), operatinoDataMap)
             case DataSyncOperationType.PARTIAL_UPDATE =>
               OperatinoActionProcessor.add(UpdateAction(uid, entry.getDataAsDocument), operatinoDataMap)
-            case DataSyncOperationType.REMOVE_BY_UID => () //Todo
+            case DataSyncOperationType.REMOVE_BY_UID => () //TODO
+            case DataSyncOperationType.CHANGE => () //TODO 
           }
         })
 
@@ -94,15 +104,15 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
     super.onTransactionConsolidationFailure(participantData);
   }
 
+  /*
+   * After synchronization
+   */
   override def afterOperationsBatchSynchronization(batchData: OperationsBatchData) = {
     // TODO Auto-generated method stub
     super.afterOperationsBatchSynchronization(batchData)
 
   }
 
-  /*
-   * Transaction persistence
-   */
   override def afterTransactionSynchronization(transactionData: TransactionData) = {
     // TODO Auto-generated method stub
     super.afterTransactionSynchronization(transactionData);
