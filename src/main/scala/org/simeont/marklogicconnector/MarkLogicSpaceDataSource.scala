@@ -25,9 +25,12 @@ import org.simeont.marklogicconnector.xml.Marshaller
 import org.simeont.marklogicconnector.marklogic.ReaderInterface
 import org.simeont.marklogicconnector.iterators.SpaceDescriptorMLIterator
 import org.simeont.marklogicconnector.iterators.ObjectMLIterator
+import java.util.logging.Logger
 
 class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
   dirPath: String) extends SpaceDataSource {
+
+  private[this] val logger: Logger = Logger.getLogger(classOf[MarkLogicSpaceDataSource].getCanonicalName())
 
   private[this] val xmlExt = ".xml"
 
@@ -50,12 +53,14 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
   }
 
   override def initialDataLoad(): DataIterator[Object] = {
+    logger.info("InitialDataLoad called.")
     val query = "xdmp:directory(\"" + dirPath + "/\",\"infinity\")"
     new ObjectMLIterator(reader.readMany(query),marshaller)
   }
 
   override def initialMetadataLoad(): DataIterator[SpaceTypeDescriptor] = {
-    val query = "xdmp:directory(\"/spacedescriptors/" + dirPath + "/\",1)"
+     logger.info("InitialMetadataLoad called.")
+    val query = "xdmp:directory(\"/spacedescriptors" + dirPath + "/\",\"1\")"
     new SpaceDescriptorMLIterator(reader.readMany(query))
   }
 

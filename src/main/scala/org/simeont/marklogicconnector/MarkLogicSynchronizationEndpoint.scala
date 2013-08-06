@@ -42,13 +42,13 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
    */
   override def onIntroduceType(introduceTypeData: IntroduceTypeData) = {
     val typeXML = SpaceDescriptorMarshaller marshallSpaceDesc introduceTypeData.getTypeDescriptor()
-    val uri = "/spacedescriptors/" + dirPath  + introduceTypeData.getTypeDescriptor().getTypeName() + xmlExt
+    val uri = "/spacedescriptors" + dirPath  + "/"  + introduceTypeData.getTypeDescriptor().getTypeName() + xmlExt
     writer.persistSpaceDescriptor(customContentFactory.generateContent(uri, typeXML))
 
   }
 
   override def onAddIndex(addIndexData: AddIndexData) = {
-    val uri = "/spacedescriptors/" + dirPath + addIndexData.getTypeName() + xmlExt
+    val uri = "/spacedescriptors" + dirPath + "/" + addIndexData.getTypeName() + xmlExt
     addIndexData.getIndexes().foreach(index =>
       writer.addElementToDocument(uri, "/spacedesc/indexes", SpaceDescriptorMarshaller indexToXml (index)))
   }

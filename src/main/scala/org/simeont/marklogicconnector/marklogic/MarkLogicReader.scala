@@ -31,6 +31,7 @@ class MarkLogicReader(contentSource: ContentSource, nameSpace: String) extends R
   private[this] val logger: Logger = Logger.getLogger(classOf[MarkLogicReader].getCanonicalName())
 
   override def read(query: String): Object = {
+    logger.info(query)
     try {
       val session = contentSource.newSession()
       val request = session.newAdhocQuery(query)
@@ -49,14 +50,16 @@ class MarkLogicReader(contentSource: ContentSource, nameSpace: String) extends R
   }
 
   override def readMany(query: String): ResultSequence = {
+    logger.info(query)
     try {
       val session = contentSource.newSession()
       val request = session.newAdhocQuery(query)
-      val options = new RequestOptions
-      options.setCacheResult(false)
-      options.setRequestTimeLimit(Integer.MAX_VALUE)
-      options.setTimeoutMillis(Integer.MAX_VALUE)
-      request.setOptions(options)
+      //TODO FIX does not work
+//      val options = new RequestOptions
+//      options.setCacheResult(false)
+//      options.setRequestTimeLimit(Integer.MAX_VALUE)
+//      options.setTimeoutMillis(Integer.MAX_VALUE)
+//      request.setOptions(options)
       session.submitRequest(request)
     } catch {
       case x: Throwable => {
