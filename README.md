@@ -5,8 +5,12 @@ GigaSpace interface to MarkLogic
 
 Code Name Tank Buster
 
-Work in progress, to be finish soon.
+Work in progress.
 
-Read from the database and SpaceDescriptor writing not finished.
+Initial load for meta and data present.
 
-Inserting and deleting from space present.
+Persistens of meta data present.
+
+Inserting and deleting data from space present.
+
+Does not support partial updates.
