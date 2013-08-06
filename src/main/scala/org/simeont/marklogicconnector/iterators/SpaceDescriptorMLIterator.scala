@@ -20,13 +20,16 @@ import java.lang.Throwable
 import com.gigaspaces.datasource.DataIterator
 import com.marklogic.xcc.ResultSequence
 import com.marklogic.xcc.ResultItem
-import org.simeont.marklogicconnector.xml.SpaceDescriptorMarshaller
+import org.simeont.marklogicconnector.xml.SpaceTypeDescriptorMarshaller
 import com.gigaspaces.metadata.SpaceTypeDescriptor
 import org.simeont.marklogicconnector.xml.Marshaller
 
+/**
+ * Iterator specifically design for returning SpaceTypeDescriptors extracted from MarkLogic
+ */
 class SpaceDescriptorMLIterator(resultSequence: ResultSequence)
   extends MLIterator[SpaceTypeDescriptor](resultSequence) {
 
   override def fromXml(item: ResultItem): SpaceTypeDescriptor =
-    SpaceDescriptorMarshaller.unmarshallSpaceDesc(item.getItem().asString())
+    SpaceTypeDescriptorMarshaller.unmarshallSpaceDesc(item.getItem().asString())
 }

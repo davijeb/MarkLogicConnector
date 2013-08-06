@@ -15,13 +15,23 @@
  */
 package org.simeont.marklogicconnector.marklogic
 
-import org.simeont.marklogicconnector.batch.ProcecessedOperationActionHolder
-import com.marklogic.xcc.Content
+object XQueryHelper {
 
-trait WriterInterface {
-	def persistAll(batchHolder : ProcecessedOperationActionHolder) : Unit
+  private[this] val xmlExt = ".xml"
 
-	def persistSpaceDescriptor(content : Content) : Unit
+  private[this] val spacetype = "/spacetypedescriptor"
 
-	def addElementToDocument(uri : String, nodePath : String, newElement : String ) : Unit
+  private[this] val slash = "/"
+
+  def buildDataUri(partialDir: String, clas: String, id: String): String =
+    partialDir + slash + clas + slash + id + xmlExt
+
+  def buildSpaceTypeUri(partialDir: String, typ: String): String =
+    spacetype + partialDir + slash + typ + xmlExt
+
+  def buildDataDir(partialDir: String): String =
+    partialDir + slash
+
+  def buildSpaceTypeDir(partialDir: String): String =
+    spacetype + partialDir + slash
 }

@@ -15,11 +15,13 @@
  */
 package org.simeont.marklogicconnector
 
-/**
- * Contains the classes that govern the communication with MarkLogic. The
- * [[org.simeont.marklogicconnector.marklogic.MarkLogicWriter]] is responsible for writing to MarkLogic while
- * [[org.simeont.marklogicconnector.marklogic.MarkLogicReader]] is responsible for reading from it.
- * Also the [[org.simeont.marklogicconnector.marklogic.XQueryHelper]] helps with the building of some commonly used
- * uris and dirs
- */
-package object marklogic
+import org.simeont.marklogicconnector.batch.ProcecessedOperationActionHolder
+import com.marklogic.xcc.Content
+
+trait WriterInterface {
+	def persistAll(batchHolder : ProcecessedOperationActionHolder) : Unit
+
+	def persistSpaceDescriptor(content : Content) : Unit
+
+	def addElementToDocument(uri : String, nodePath : String, newElement : String ) : Unit
+}

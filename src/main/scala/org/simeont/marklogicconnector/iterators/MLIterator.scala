@@ -21,6 +21,9 @@ import java.util.logging.Logger
 import java.lang.Throwable
 import com.marklogic.xcc.ResultItem
 
+/**
+ * Class that has the commonly used methods between the two iterators for reading from MarkLogic
+ */
 abstract class MLIterator[T  <: Object](resultSequence: ResultSequence) extends DataIterator[T] {
 
   private[this] val logger: Logger = Logger.getLogger(classOf[MLIterator[T]].getCanonicalName())
@@ -56,5 +59,8 @@ abstract class MLIterator[T  <: Object](resultSequence: ResultSequence) extends 
 
   override def remove = ()
 
+  /**
+   * This method is overridden in the two implementation of this class
+   */
   def fromXml(item: ResultItem): T
 }

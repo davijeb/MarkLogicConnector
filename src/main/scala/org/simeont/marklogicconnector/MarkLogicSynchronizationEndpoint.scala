@@ -26,31 +26,30 @@ import com.gigaspaces.sync.TransactionData
 import com.gigaspaces.sync.DataSyncOperationType
 import org.simeont.marklogicconnector.batch.action._
 import org.simeont.marklogicconnector.factory.CustomContentFactory
-import org.simeont.marklogicconnector.marklogic.WriterInterface
 import org.simeont.marklogicconnector.batch.ProcecessedOperationActionHolder
 import org.simeont.marklogicconnector.batch.OperatinoActionProcessor
-import org.simeont.marklogicconnector.xml.SpaceDescriptorMarshaller
+import org.simeont.marklogicconnector.xml.SpaceTypeDescriptorMarshaller
+import org.simeont.marklogicconnector.marklogic.XQueryHelper
 
 class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactory, writer: WriterInterface,
   dirPath: String) extends SpaceSynchronizationEndpoint {
 
   private[this] val logger: Logger = Logger.getLogger(classOf[MarkLogicSynchronizationEndpoint].getCanonicalName())
 
-  private[this] val xmlExt = ".xml"
   /*
    * SpaceTypeDescriptor related persistence
    */
   override def onIntroduceType(introduceTypeData: IntroduceTypeData) = {
-    val typeXML = SpaceDescriptorMarshaller marshallSpaceDesc introduceTypeData.getTypeDescriptor()
-    val uri = "/spacedescriptors" + dirPath  + "/"  + introduceTypeData.getTypeDescriptor().getTypeName() + xmlExt
+    val typeXML = SpaceTypeDescriptorMarshaller marshallSpaceDesc introduceTypeData.getTypeDescriptor()
+    val uri = XQueryHelper.buildSpaceTypeUri(dirPath, introduceTypeData.getTypeDescriptor().getTypeName())
     writer.persistSpaceDescriptor(customContentFactory.generateContent(uri, typeXML))
 
   }
 
   override def onAddIndex(addIndexData: AddIndexData) = {
-    val uri = "/spacedescriptors" + dirPath + "/" + addIndexData.getTypeName() + xmlExt
+    val uri = XQueryHelper.buildSpaceTypeUri(dirPath, addIndexData.getTypeName())
     addIndexData.getIndexes().foreach(index =>
-      writer.addElementToDocument(uri, "/spacedesc/indexes", SpaceDescriptorMarshaller indexToXml (index)))
+      writer.addElementToDocument(uri, "/spacedesc/indexes", SpaceTypeDescriptorMarshaller indexToXml (index)))
   }
 
   /*
@@ -71,7 +70,7 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
           val typ = entry.getTypeDescriptor().getTypeName()
           val idField = entry.getTypeDescriptor().getIdPropertyName()
           val idValue = (entry.getDataAsDocument().getProperty(idField)).toString
-          val uid = dirPath + "/" + typ + "/" + idValue + xmlExt
+          val uid = XQueryHelper.buildDataUri(dirPath, typ, idValue)
 
           entry.getDataSyncOperationType() match {
             case DataSyncOperationType.WRITE | DataSyncOperationType.UPDATE =>

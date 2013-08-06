@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.simeont.marklogicconnector.marklogic
+package org.simeont.marklogicconnector
 
 import com.marklogic.xcc.ResultSequence
 

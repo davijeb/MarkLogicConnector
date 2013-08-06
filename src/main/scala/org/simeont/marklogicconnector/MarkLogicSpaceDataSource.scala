@@ -22,10 +22,10 @@ import com.gigaspaces.datasource.DataSourceQuery
 import com.gigaspaces.datasource.SpaceDataSource
 import com.gigaspaces.metadata.SpaceTypeDescriptor
 import org.simeont.marklogicconnector.xml.Marshaller
-import org.simeont.marklogicconnector.marklogic.ReaderInterface
 import org.simeont.marklogicconnector.iterators.SpaceDescriptorMLIterator
 import org.simeont.marklogicconnector.iterators.ObjectMLIterator
 import java.util.logging.Logger
+import org.simeont.marklogicconnector.marklogic.XQueryHelper
 
 class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
   dirPath: String) extends SpaceDataSource {
@@ -37,8 +37,8 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
   override def getById(idQuery: DataSourceIdQuery): Object = {
     val typ = idQuery.getTypeDescriptor().getTypeName()
     val id = idQuery.getId().toString
-
-    val query = "doc(\"" + dirPath + "/" + typ + "/" + id + xmlExt + "\")"
+    val uri = XQueryHelper.buildDataUri(dirPath, typ, id)
+    val query = "doc(\"" + uri + "\")"
     reader.read(query)
   }
 
@@ -54,13 +54,15 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
 
   override def initialDataLoad(): DataIterator[Object] = {
     logger.info("InitialDataLoad called.")
-    val query = "xdmp:directory(\"" + dirPath + "/\",\"infinity\")"
+    val dir = XQueryHelper.buildDataDir(dirPath)
+    val query = "xdmp:directory(\"" + dir + "\",\"infinity\")"
     new ObjectMLIterator(reader.readMany(query),marshaller)
   }
 
   override def initialMetadataLoad(): DataIterator[SpaceTypeDescriptor] = {
-     logger.info("InitialMetadataLoad called.")
-    val query = "xdmp:directory(\"/spacedescriptors" + dirPath + "/\",\"1\")"
+    logger.info("InitialMetadataLoad called.")
+    val dir = XQueryHelper.buildSpaceTypeDir(dirPath)
+    val query = "xdmp:directory(\"" + dir + "\",\"1\")"
     new SpaceDescriptorMLIterator(reader.readMany(query))
   }
 

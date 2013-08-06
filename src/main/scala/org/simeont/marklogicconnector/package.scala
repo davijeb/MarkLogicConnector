@@ -17,6 +17,7 @@ package org.simeont
 
 /**
  * Contains the entry points for the interface. The write one
- * [[org.simeont.marklogicconnector.MarkLogicSynchronizationEndpoint]] and the read one []
+ * [[org.simeont.marklogicconnector.MarkLogicSynchronizationEndpoint]] and the read one
+ * [[org.simeont.marklogicconnector.MarkLogicSpaceDataSource]]
  */
 package object marklogicconnector

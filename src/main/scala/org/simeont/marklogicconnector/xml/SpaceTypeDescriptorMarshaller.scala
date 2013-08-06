@@ -29,23 +29,25 @@ import com.gigaspaces.document.SpaceDocument
 import com.gigaspaces.metadata.SpaceDocumentSupport
 import com.gigaspaces.metadata.index.SpaceIndexType
 
-object SpaceDescriptorMarshaller {
+object SpaceTypeDescriptorMarshaller {
 
   private[this] val xstream: XStream = new XStream
 
+  private[this] val commentFriendlyQuote = "\" "
+
   def marshallSpaceDesc(desc: SpaceTypeDescriptor): String = {
-    val head = "<spacedesc superType=\"" + desc.getSuperTypeName() + "\" " +
-      "type=\"" + desc.getTypeName() + "\" " +
-      "typeSimple=\"" + desc.getTypeSimpleName() + "\" " +
-      "id=\"" + desc.getIdPropertyName() + "\" " +
-      "routing=\"" + desc.getRoutingPropertyName() + "\" " +
-      "dynamicProperties=\"" + desc.supportsDynamicProperties() + "\" " +
-      "optimisticLocking=\"" + desc.supportsOptimisticLocking() + "\" " +
-      "autoGenerateId=\"" + desc.isAutoGenerateId() + "\" " +
-      "replicable=\"" + desc.isReplicable() + "\" " +
-      "storageType=\"" + desc.getStorageType() + "\" " +
-      "fifoGroupingPropertyPath=\"" + desc.getFifoGroupingPropertyPath() + "\" " +
-      "fifoSupport=\"" + desc.getFifoSupport() + "\" " +
+    val head = "<spacedesc superType=\"" + desc.getSuperTypeName() + commentFriendlyQuote +
+      "type=\"" + desc.getTypeName() + commentFriendlyQuote +
+      "typeSimple=\"" + desc.getTypeSimpleName() + commentFriendlyQuote +
+      "id=\"" + desc.getIdPropertyName() + commentFriendlyQuote  +
+      "routing=\"" + desc.getRoutingPropertyName() + commentFriendlyQuote +
+      "dynamicProperties=\"" + desc.supportsDynamicProperties() + commentFriendlyQuote +
+      "optimisticLocking=\"" + desc.supportsOptimisticLocking() + commentFriendlyQuote +
+      "autoGenerateId=\"" + desc.isAutoGenerateId() + commentFriendlyQuote +
+      "replicable=\"" + desc.isReplicable() + commentFriendlyQuote +
+      "storageType=\"" + desc.getStorageType() + commentFriendlyQuote +
+      "fifoGroupingPropertyPath=\"" + desc.getFifoGroupingPropertyPath() + commentFriendlyQuote +
+      "fifoSupport=\"" + desc.getFifoSupport() + commentFriendlyQuote +
       "concreteType=\"" + desc.isConcreteType() + "\">"
 
     val end = "</spacedesc>"
@@ -75,9 +77,9 @@ object SpaceDescriptorMarshaller {
 
   private[this] def fixedPropertyToXml(sPropertyDescriptor: SpacePropertyDescriptor): String = {
     val head =
-      "<fixProperty name=\"" + sPropertyDescriptor.getName() + "\" " +
-        "storageType=\"" + sPropertyDescriptor.getStorageType() + "\" " +
-        "documentSupport=\"" + sPropertyDescriptor.getDocumentSupport() + "\" " +
+      "<fixProperty name=\"" + sPropertyDescriptor.getName() + commentFriendlyQuote +
+        "storageType=\"" + sPropertyDescriptor.getStorageType() + commentFriendlyQuote +
+        "documentSupport=\"" + sPropertyDescriptor.getDocumentSupport() + commentFriendlyQuote +
         "typeName=\"" + sPropertyDescriptor.getTypeName() + "\">"
     val end =
       "</fixProperty>"

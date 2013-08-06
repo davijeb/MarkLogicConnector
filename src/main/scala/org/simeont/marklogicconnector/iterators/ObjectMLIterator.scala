@@ -19,7 +19,9 @@ import com.marklogic.xcc.ResultItem
 import com.marklogic.xcc.ResultSequence
 import org.simeont.marklogicconnector.xml.Marshaller
 
-
+/**
+ * Iterator responsible for returning data objects extracted from MarkLogic
+ */
 class ObjectMLIterator(resultSequence: ResultSequence, xmlMarshaller: Marshaller)
   extends MLIterator[Object](resultSequence) {
 

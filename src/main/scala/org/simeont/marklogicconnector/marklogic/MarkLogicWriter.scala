@@ -23,6 +23,7 @@ import com.marklogic.xcc.Content
 import org.simeont.marklogicconnector.batch.ProcecessedOperationActionHolder
 import java.util.logging.Logger
 import java.util.logging.Level
+import org.simeont.marklogicconnector.WriterInterface
 
 /**
  *

@@ -16,6 +16,6 @@
 package org.simeont.marklogicconnector
 
 /**
- * Iterators to return from MarkLogic
+ * Iterators to return data from MarkLogic
  */
 package object iterators

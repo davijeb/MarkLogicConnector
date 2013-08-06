@@ -22,6 +22,7 @@ import com.marklogic.xcc.RequestOptions
 import java.util.logging.Logger
 import java.util.logging.Level
 import com.marklogic.xcc.ResultSequence
+import org.simeont.marklogicconnector.ReaderInterface
 
 /**
  *
@@ -54,12 +55,9 @@ class MarkLogicReader(contentSource: ContentSource, nameSpace: String) extends R
     try {
       val session = contentSource.newSession()
       val request = session.newAdhocQuery(query)
-      //TODO FIX does not work
-//      val options = new RequestOptions
-//      options.setCacheResult(false)
-//      options.setRequestTimeLimit(Integer.MAX_VALUE)
-//      options.setTimeoutMillis(Integer.MAX_VALUE)
-//      request.setOptions(options)
+      val options = new RequestOptions
+      options.setCacheResult(false)
+      request.setOptions(options)
       session.submitRequest(request)
     } catch {
       case x: Throwable => {
