@@ -42,13 +42,13 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
    */
   override def onIntroduceType(introduceTypeData: IntroduceTypeData) = {
     val typeXML = SpaceDescriptorMarshaller marshallSpaceDesc introduceTypeData.getTypeDescriptor()
-    val uri = dirPath + "/spacedescriptors/" + introduceTypeData.getTypeDescriptor().getTypeName() + xmlExt
+    val uri = "/spacedescriptors/" + dirPath  + introduceTypeData.getTypeDescriptor().getTypeName() + xmlExt
     writer.persistSpaceDescriptor(customContentFactory.generateContent(uri, typeXML))
 
   }
 
   override def onAddIndex(addIndexData: AddIndexData) = {
-    val uri = dirPath + "/spacedescriptors/" + addIndexData.getTypeName() + xmlExt
+    val uri = "/spacedescriptors/" + dirPath + addIndexData.getTypeName() + xmlExt
     addIndexData.getIndexes().foreach(index =>
       writer.addElementToDocument(uri, "/spacedesc/indexes", SpaceDescriptorMarshaller indexToXml (index)))
   }
@@ -68,9 +68,10 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
       val operatinoDataMap = MMap[String, Action]()
       dataItems.foreach(entry =>
         {
+          val typ = entry.getTypeDescriptor().getTypeName()
           val idField = entry.getTypeDescriptor().getIdPropertyName()
           val idValue = (entry.getDataAsDocument().getProperty(idField)).toString
-          val uid = dirPath + "/" + idValue + xmlExt
+          val uid = dirPath + "/" + typ + "/" + idValue + xmlExt
 
           entry.getDataSyncOperationType() match {
             case DataSyncOperationType.WRITE | DataSyncOperationType.UPDATE =>

@@ -15,18 +15,28 @@
  */
 package org.simeont.marklogicconnector
 
-import com.gigaspaces.datasource.DataIterator;
-import com.gigaspaces.datasource.DataSourceIdQuery;
-import com.gigaspaces.datasource.DataSourceIdsQuery;
-import com.gigaspaces.datasource.DataSourceQuery;
+import com.gigaspaces.datasource.DataIterator
+import com.gigaspaces.datasource.DataSourceIdQuery
+import com.gigaspaces.datasource.DataSourceIdsQuery
+import com.gigaspaces.datasource.DataSourceQuery
 import com.gigaspaces.datasource.SpaceDataSource
-import com.gigaspaces.metadata.SpaceTypeDescriptor;
+import com.gigaspaces.metadata.SpaceTypeDescriptor
+import org.simeont.marklogicconnector.xml.Marshaller
+import org.simeont.marklogicconnector.marklogic.ReaderInterface
+import org.simeont.marklogicconnector.iterators.SpaceDescriptorMLIterator
+import org.simeont.marklogicconnector.iterators.ObjectMLIterator
 
-class MarkLogicSpaceDataSource extends SpaceDataSource {
+class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
+  dirPath: String) extends SpaceDataSource {
+
+  private[this] val xmlExt = ".xml"
 
   override def getById(idQuery: DataSourceIdQuery): Object = {
-    // TODO Auto-generated method stub
-    super.getById(idQuery);
+    val typ = idQuery.getTypeDescriptor().getTypeName()
+    val id = idQuery.getId().toString
+
+    val query = "doc(\"" + dirPath + "/" + typ + "/" + id + xmlExt + "\")"
+    reader.read(query)
   }
 
   override def getDataIterator(query: DataSourceQuery): DataIterator[Object] = {
@@ -40,16 +50,14 @@ class MarkLogicSpaceDataSource extends SpaceDataSource {
   }
 
   override def initialDataLoad(): DataIterator[Object] = {
-    // TODO Auto-generated method stub
-    super.initialDataLoad();
+    val query = "xdmp:directory(\"" + dirPath + "/\",\"infinity\")"
+    new ObjectMLIterator(reader.readMany(query),marshaller)
   }
 
   override def initialMetadataLoad(): DataIterator[SpaceTypeDescriptor] = {
-    // TODO Auto-generated method stub
-    super.initialMetadataLoad();
+    val query = "xdmp:directory(\"/spacedescriptors/" + dirPath + "/\",1)"
+    new SpaceDescriptorMLIterator(reader.readMany(query))
   }
 
-  override def supportsInheritance(): Boolean = {
-    super.supportsInheritance();
-  }
+  override def supportsInheritance(): Boolean = false
 }
