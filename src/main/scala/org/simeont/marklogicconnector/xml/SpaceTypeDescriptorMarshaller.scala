@@ -224,9 +224,11 @@ object SpaceTypeDescriptorMarshaller {
       val indexPropArray: Seq[IndexHolder] =
         indexProp.get match { case x: Seq[IndexHolder] => x; case _ => throw new ClassCastException }
       indexPropArray.foreach(ind => {
-        if (!superIndexs.contains(ind.key))
+        if (!superIndexs.containsKey(ind.key))
           if (ind.pathKey) tempTypBuilder = tempTypBuilder.addPathIndex(ind.key, ind.index)
-          else tempTypBuilder = tempTypBuilder.addPropertyIndex(ind.key, ind.index)
+          else{
+            tempTypBuilder = tempTypBuilder.addPropertyIndex(ind.key, ind.index)
+          }
       })
     }
     tempTypBuilder
@@ -344,7 +346,7 @@ object SpaceTypeDescriptorMarshaller {
       val attributes = child.attributes.asAttrMap
       val id: String = attributes.get("name").get
       val indexType = SpaceIndexType.valueOf(attributes.get("type").get)
-      IndexHolder(id, indexType, id.contains("."))
+      IndexHolder(id, indexType, id.contains('.'))
     })
   }
 

@@ -26,6 +26,7 @@ import com.gigaspaces.metadata.index.SpaceIndexType
 import org.simeont.marklogicconnector.xml.SpaceTypeDescriptorMarshaller
 import scala.xml.Node
 import scala.xml.XML
+import com.gigaspaces.annotation.pojo.FifoSupport
 
 class SpaceTypeDescriptorMarshallerTests extends FunSuite {
 
@@ -33,7 +34,7 @@ class SpaceTypeDescriptorMarshallerTests extends FunSuite {
     .idProperty("id", false)
     .addFixedProperty("fix1", "java.lang.String", SpaceDocumentSupport.COPY, StorageType.OBJECT)
     .addPathIndex("id.id", SpaceIndexType.EXTENDED)
-    .addPropertyIndex("routing", SpaceIndexType.EXTENDED)
+    .addPropertyIndex("rounting", SpaceIndexType.EXTENDED)
     .replicable(false)
     .supportsDynamicProperties(false)
     .supportsOptimisticLocking(false)
@@ -73,6 +74,17 @@ class SpaceTypeDescriptorMarshallerTests extends FunSuite {
     val unMarshalled = SpaceTypeDescriptorMarshaller.unmarshallAllSpaceDesc(Array(supMarshalled,marshalled))
     unMarshalled.next
     compareSpaceTypes( unMarshalled.next, spacedesc)
+  }
+  
+  test("should unmarshall xml to SpaceTypeDescriptor with Fifo ON"){
+    val fifoOn = standardSpaceDescBuilder
+    .fifoSupport(FifoSupport.DEFAULT)
+    .fifoGroupingProperty("id")
+    .addFifoGroupingIndex("id")
+    .create
+    
+    val marshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(fifoOn)
+    compareSpaceTypes(SpaceTypeDescriptorMarshaller.unmarshallAllSpaceDesc(Array(marshalled)).next, fifoOn)
   }
 
   private[this] def compareSpaceTypes(t1: SpaceTypeDescriptor, t2: SpaceTypeDescriptor): Unit = {
