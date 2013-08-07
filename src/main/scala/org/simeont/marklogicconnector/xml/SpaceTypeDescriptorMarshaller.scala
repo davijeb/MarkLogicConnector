@@ -15,6 +15,7 @@
  */
 package org.simeont.marklogicconnector.xml
 
+import scala.collection.mutable.{ Map => MMap }
 import scala.xml.Node
 import scala.xml.XML
 import scala.collection.JavaConversions._
@@ -39,7 +40,7 @@ object SpaceTypeDescriptorMarshaller {
     val head = "<spacedesc superType=\"" + desc.getSuperTypeName() + commentFriendlyQuote +
       "type=\"" + desc.getTypeName() + commentFriendlyQuote +
       "typeSimple=\"" + desc.getTypeSimpleName() + commentFriendlyQuote +
-      "id=\"" + desc.getIdPropertyName() + commentFriendlyQuote  +
+      "id=\"" + desc.getIdPropertyName() + commentFriendlyQuote +
       "routing=\"" + desc.getRoutingPropertyName() + commentFriendlyQuote +
       "dynamicProperties=\"" + desc.supportsDynamicProperties() + commentFriendlyQuote +
       "optimisticLocking=\"" + desc.supportsOptimisticLocking() + commentFriendlyQuote +
@@ -98,27 +99,27 @@ object SpaceTypeDescriptorMarshaller {
     val xml: Node = XML.loadString(xmlS)
     val attributes = xml.attributes.asAttrMap
     val id = attributes.get("id").get
+    val routing = attributes.get("routing").get
     var typ: SpaceTypeDescriptorBuilder = new SpaceTypeDescriptorBuilder(attributes.get("type").get)
-      .idProperty(id, attributes.get("autoGenerateId").get.toBoolean)
-      .routingProperty(attributes.get("routing").get)
       .supportsDynamicProperties(attributes.get("dynamicProperties").get.toBoolean)
       .supportsOptimisticLocking(attributes.get("optimisticLocking").get.toBoolean)
       .replicable(attributes.get("replicable").get.toBoolean)
       .storageType(StorageType.valueOf(attributes.get("storageType").get))
       .fifoSupport(FifoSupport.valueOf(attributes.get("fifoSupport").get))
-
     if (attributes.get("fifoGroupingPropertyPath").get != "null")
       typ = typ.addFifoGroupingIndex(attributes.get("fifoGroupingPropertyPath").get)
 
+    var indexMap: MMap[String, SpaceIndexType] = null
+    
     xml.child.foreach(node => {
       if (node.label == "fifoGroupingIndexesPaths")
         xstream.fromXML(node.child(0).buildString(true)) match {
           case set: java.util.Set[String] => set.foreach(i => typ = typ.addFifoGroupingIndex(i))
         }
       if (node.label == "fixedProperties")
-        node.child.foreach(child => typ = addfixedPropFromXml(typ, child))
+        node.child.foreach(childNode => typ = addfixedPropFromXml(typ, childNode))
       if (node.label == "indexes")
-        node.child.foreach(child => typ = addIndexFromXml(typ, child,id))
+        indexMap = buildIndexMap(node.child)
       if (node.label == "documentWrapperClass")
         typ = typ.documentWrapperClass(
           xstream.fromXML(node.child(0).buildString(true)) match {
@@ -126,11 +127,33 @@ object SpaceTypeDescriptorMarshaller {
           })
     })
 
+    //This will handle if the routing and id fields have an additional index
+    val idIndex = indexMap.getOrElse(id,SpaceIndexType.BASIC)
+    indexMap.remove(id)
+     val routingIndex = indexMap.getOrElse(routing,SpaceIndexType.BASIC)
+    indexMap.remove(routing)
+    
+    typ = addIndexes(typ,indexMap)
+    typ = typ
+      .idProperty(id, attributes.get("autoGenerateId").get.toBoolean,idIndex)
+      .routingProperty(routing,routingIndex)
+
     typ.create
   }
 
-  private[this] def addfixedPropFromXml(typ: SpaceTypeDescriptorBuilder, child: Node): SpaceTypeDescriptorBuilder = {
+  private[this] def addIndexes(typ: SpaceTypeDescriptorBuilder,
+    indexes: MMap[String, SpaceIndexType]): SpaceTypeDescriptorBuilder = {
+    var tempTyp = typ
+    indexes.foreach(indexPair => {
+      if (indexPair._1.contains('.'))
+        tempTyp = tempTyp.addPathIndex(indexPair._1, indexPair._2)
+      else
+        tempTyp = tempTyp.addPropertyIndex(indexPair._1, indexPair._2)
+    })
+    tempTyp
+  }
 
+  private[this] def addfixedPropFromXml(typ: SpaceTypeDescriptorBuilder, child: Node): SpaceTypeDescriptorBuilder = {
     val attributes = child.attributes.asAttrMap
     val typOfFix = xstream.fromXML(child.child(0).child(0).buildString(true)) match { case x: Class[_] => x }
     val storageType = StorageType.valueOf(attributes.get("storageType").get)
@@ -140,18 +163,15 @@ object SpaceTypeDescriptorMarshaller {
     typ.addFixedProperty(name, typOfFix, documentSupport, storageType)
   }
 
-  private[this] def addIndexFromXml(typ: SpaceTypeDescriptorBuilder, child: Node,
-    primaryKey: String): SpaceTypeDescriptorBuilder = {
-    val attributes = child.attributes.asAttrMap
-    val id = attributes.get("name").get
-    val indexType = SpaceIndexType.valueOf(attributes.get("type").get)
-    if (primaryKey != id || indexType == SpaceIndexType.EXTENDED) {
-      val path = id.contains('.')
-      if (path)
-        typ.addPathIndex(id, indexType)
-      else
-        typ.addPropertyIndex(id, indexType)
-    } else
-      typ
+  private[this] def buildIndexMap(indexSet: Seq[Node]): MMap[String, SpaceIndexType] = {
+    var map = MMap[String, SpaceIndexType]()
+    indexSet.foreach(child => {
+      val attributes = child.attributes.asAttrMap
+      val id: String = attributes.get("name").get
+      val indexType = SpaceIndexType.valueOf(attributes.get("type").get)
+      if (!map.contains(id) || map.get(id).get == SpaceIndexType.NONE ||
+        map.get(id).get == SpaceIndexType.BASIC && indexType == SpaceIndexType.EXTENDED) map.put(id, indexType)
+    })
+    map
   }
 }

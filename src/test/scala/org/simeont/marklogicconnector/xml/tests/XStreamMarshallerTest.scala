@@ -97,7 +97,7 @@ class XStreamMarshallerTest extends FunSuite {
     val uSpaceDocument = marshaller.fromXML(marshaller.toXML(spaceDocument))
     assert(uSpaceDocument === spaceDocument)
   }
-  
+
   test("should unmarshall scala list inside spacedocument") {
     val list: List[Integer] = List(1, 2, 3)
     val spaceDocument = new SpaceDocument("list-test")
