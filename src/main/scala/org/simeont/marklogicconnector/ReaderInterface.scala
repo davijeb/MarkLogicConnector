@@ -22,4 +22,6 @@ trait ReaderInterface {
 
 	def readMany(query : String) : ResultSequence
 
+	def readSpaceTypeDescriptors(query : String) : ResultSequence
+
 }

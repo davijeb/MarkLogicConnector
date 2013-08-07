@@ -2,7 +2,7 @@ name := "MarkLogicConnector"
 
 organization := "org.simeonot"
 
-version := "0.5.0"
+version := "0.6.0"
 
 scalaVersion := "2.10.1"
 

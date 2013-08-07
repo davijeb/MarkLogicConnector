@@ -25,45 +25,75 @@ import com.gigaspaces.metadata.index.SpaceIndex
 import com.gigaspaces.metadata.index.SpaceIndexType
 import org.simeont.marklogicconnector.xml.SpaceTypeDescriptorMarshaller
 import scala.xml.Node
+import scala.xml.XML
 
 class SpaceTypeDescriptorMarshallerTests extends FunSuite {
 
-  test("should marshall SpaceTypeDescriptor to xml") {
-    val spacedesc = new SpaceTypeDescriptorBuilder("Test")
-      .idProperty("id")
-      .routingProperty("rounting")
-      .addFixedProperty("fix1", "java.lang.String", SpaceDocumentSupport.COPY, StorageType.OBJECT)
-      .addPropertyIndex("routing", SpaceIndexType.EXTENDED)
-      .addPathIndex("id.id", SpaceIndexType.EXTENDED)
-      .replicable(false)
-      .supportsDynamicProperties(false)
-      .supportsOptimisticLocking(false)
-      .storageType(StorageType.DEFAULT)
-      .create
+  val standardSpaceDescBuilder = new SpaceTypeDescriptorBuilder("Test")
+    .idProperty("id", false)
+    .addFixedProperty("fix1", "java.lang.String", SpaceDocumentSupport.COPY, StorageType.OBJECT)
+    .addPathIndex("id.id", SpaceIndexType.EXTENDED)
+    .addPropertyIndex("routing", SpaceIndexType.EXTENDED)
+    .replicable(false)
+    .supportsDynamicProperties(false)
+    .supportsOptimisticLocking(false)
+    .storageType(StorageType.DEFAULT)
 
-    val marshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(spacedesc)
+  test("should marshall SpaceTypeDescriptor to xml") {
+    val builder = standardSpaceDescBuilder
+
+    val marshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(
+      builder.routingProperty("routing", SpaceIndexType.EXTENDED).create)
+    XML.loadString(marshalled)
+
   }
 
   test("should unmarshall xml to SpaceTypeDescriptor") {
-    val spacedesc = new SpaceTypeDescriptorBuilder("Test")
-      .idProperty("id", false)
-      .routingProperty("rounting")
-      .addFixedProperty("fix1", "java.lang.String", SpaceDocumentSupport.COPY, StorageType.OBJECT)
-      .addPropertyIndex("routing", SpaceIndexType.EXTENDED)
-      .addPathIndex("id.id", SpaceIndexType.EXTENDED)
-      .replicable(false)
-      .supportsDynamicProperties(false)
-      .supportsOptimisticLocking(false)
-      .storageType(StorageType.DEFAULT)
-      .create
+    val spacedesc = standardSpaceDescBuilder.create
 
     val marshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(spacedesc)
-    SpaceTypeDescriptorMarshaller.unmarshallSpaceDesc(marshalled)
+    compareSpaceTypes(SpaceTypeDescriptorMarshaller.unmarshallAllSpaceDesc(Array(marshalled)).next, spacedesc)
   }
 
-  test("should unmarshall xml with FifoSupport null") {
+  test("should unmarshall xml to SpaceTypeDescriptor without id and routing property") {
+    val spacedesc = new SpaceTypeDescriptorBuilder("noid").create
 
+    val marshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(spacedesc)
+    compareSpaceTypes(SpaceTypeDescriptorMarshaller.unmarshallAllSpaceDesc(Array(marshalled)).next, spacedesc)
   }
 
+  test("should unmarshall xml to SpaceTypeDescriptor with SuperSpaceType") {
+    val sup = standardSpaceDescBuilder.create
+    val spacedesc = new SpaceTypeDescriptorBuilder("Test2", sup)
+      .addPathIndex("id.id2", SpaceIndexType.EXTENDED)
+      .create
+
+    val supMarshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(sup)
+    val marshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(spacedesc)
+    val unMarshalled = SpaceTypeDescriptorMarshaller.unmarshallAllSpaceDesc(Array(supMarshalled,marshalled))
+    unMarshalled.next
+    compareSpaceTypes( unMarshalled.next, spacedesc)
+  }
+
+  private[this] def compareSpaceTypes(t1: SpaceTypeDescriptor, t2: SpaceTypeDescriptor): Unit = {
+    assert(t1.getDocumentWrapperClass() === t2.getDocumentWrapperClass())
+    assert(t1.getFifoGroupingIndexesPaths() === t2.getFifoGroupingIndexesPaths())
+    assert(t1.getFifoGroupingPropertyPath() === t2.getFifoGroupingPropertyPath())
+    assert(t1.getFifoSupport() === t2.getFifoSupport)
+    assert(t1.getIdPropertyName() === t2.getIdPropertyName)
+    assert(t1.getIndexes() === t2.getIndexes)
+    assert(t1.getNumOfFixedProperties() === t2.getNumOfFixedProperties)
+    assert(t1.getObjectClass() === t2.getObjectClass)
+    assert(t1.getRoutingPropertyName() == t2.getRoutingPropertyName)
+    assert(t1.getStorageType() === t2.getStorageType)
+    assert(t1.getSuperTypeName() === t2.getSuperTypeName) //Not passing, does not keep the master type descriptor
+    assert(t1.getTypeName() === t2.getTypeName)
+    assert(t1.getTypeSimpleName() === t2.getTypeSimpleName)
+    assert(t1.isAutoGenerateId() === t2.isAutoGenerateId)
+    assert(t1.isConcreteType() === t2.isConcreteType)
+    assert(t1.isReplicable() === t2.isReplicable)
+    assert(t1.supportsDynamicProperties() === t2.supportsDynamicProperties)
+    assert(t1.supportsOptimisticLocking() === t2.supportsOptimisticLocking)
+  }
 }
 

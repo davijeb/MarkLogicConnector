@@ -29,49 +29,76 @@ import com.gigaspaces.annotation.pojo.FifoSupport
 import com.gigaspaces.document.SpaceDocument
 import com.gigaspaces.metadata.SpaceDocumentSupport
 import com.gigaspaces.metadata.index.SpaceIndexType
+import java.util.HashMap
 
 object SpaceTypeDescriptorMarshaller {
 
   private[this] val xstream: XStream = new XStream
 
   private[this] val commentFriendlyQuote = "\" "
+  private[this] val commentFriendlyEqAndQuote = "=\""
+  private[this] val typeName = "type"
+  private[this] val superTypeName = "superType"
+  private[this] val typeSimpleName = "typeSimple"
+  private[this] val idAttName = "id"
+  private[this] val routingAttName = "routing"
+  private[this] val autoGenerateIdAttName = "autoGenerateId"
+  private[this] val dynamicPropertiesAttName = "dynamicProperties"
+  private[this] val storageTypeAttName = "storageType"
+  private[this] val fifoSupportAttName = "fifoSupport"
+  private[this] val fifoGroupingPropertyPathAttName = "fifoGroupingPropertyPath"
+  private[this] val replicableAttName = "replicable"
+  private[this] val optimisticLockingAttName = "optimisticLocking"
+  private[this] val fixedPropsElName = "fixedProperties"
+  private[this] val indexPropsElName = "indexes"
+  private[this] val fifoGroupingIndexesPathsElName = "fifoGroupingIndexesPaths"
+  private[this] val documentWrapperClassElName = "documentWrapperClass"
+  private[this] val objectClassElName = "objectClass"
 
+  /**
+   * Marshals single SpaceTypeDescriptor
+   */
   def marshallSpaceDesc(desc: SpaceTypeDescriptor): String = {
-    val head = "<spacedesc superType=\"" + desc.getSuperTypeName() + commentFriendlyQuote +
-      "type=\"" + desc.getTypeName() + commentFriendlyQuote +
-      "typeSimple=\"" + desc.getTypeSimpleName() + commentFriendlyQuote +
-      "id=\"" + desc.getIdPropertyName() + commentFriendlyQuote +
-      "routing=\"" + desc.getRoutingPropertyName() + commentFriendlyQuote +
-      "dynamicProperties=\"" + desc.supportsDynamicProperties() + commentFriendlyQuote +
-      "optimisticLocking=\"" + desc.supportsOptimisticLocking() + commentFriendlyQuote +
-      "autoGenerateId=\"" + desc.isAutoGenerateId() + commentFriendlyQuote +
-      "replicable=\"" + desc.isReplicable() + commentFriendlyQuote +
-      "storageType=\"" + desc.getStorageType() + commentFriendlyQuote +
-      "fifoGroupingPropertyPath=\"" + desc.getFifoGroupingPropertyPath() + commentFriendlyQuote +
-      "fifoSupport=\"" + desc.getFifoSupport() + commentFriendlyQuote +
+    val head = "<spacedesc " +
+      superTypeName + commentFriendlyEqAndQuote + desc.getSuperTypeName + commentFriendlyQuote +
+      typeName + commentFriendlyEqAndQuote + desc.getTypeName + commentFriendlyQuote +
+      typeSimpleName + commentFriendlyEqAndQuote + desc.getTypeSimpleName + commentFriendlyQuote +
+      idAttName + commentFriendlyEqAndQuote + desc.getIdPropertyName + commentFriendlyQuote +
+      routingAttName + commentFriendlyEqAndQuote + desc.getRoutingPropertyName + commentFriendlyQuote +
+      dynamicPropertiesAttName + commentFriendlyEqAndQuote + desc.supportsDynamicProperties + commentFriendlyQuote +
+      optimisticLockingAttName + commentFriendlyEqAndQuote + desc.supportsOptimisticLocking + commentFriendlyQuote +
+      autoGenerateIdAttName + commentFriendlyEqAndQuote + desc.isAutoGenerateId + commentFriendlyQuote +
+      replicableAttName + commentFriendlyEqAndQuote + desc.isReplicable + commentFriendlyQuote +
+      storageTypeAttName + commentFriendlyEqAndQuote + desc.getStorageType + commentFriendlyQuote +
+      fifoGroupingPropertyPathAttName + commentFriendlyEqAndQuote +
+      desc.getFifoGroupingPropertyPath + commentFriendlyQuote +
+      fifoSupportAttName + commentFriendlyEqAndQuote + desc.getFifoSupport + commentFriendlyQuote +
       "concreteType=\"" + desc.isConcreteType() + "\">"
 
     val end = "</spacedesc>"
 
     val fifoGroupingIndexesPaths =
-      "<fifoGroupingIndexesPaths>" + xstream.toXML(desc.getFifoGroupingIndexesPaths()) + "</fifoGroupingIndexesPaths>"
+      "<" + fifoGroupingIndexesPathsElName + ">" + xstream.toXML(desc.getFifoGroupingIndexesPaths()) +
+        "</" + fifoGroupingIndexesPathsElName + ">"
 
     val documentWrapperClass =
-      "<documentWrapperClass>" + xstream.toXML(desc.getDocumentWrapperClass()) + "</documentWrapperClass>"
+      "<" + documentWrapperClassElName + ">" + xstream.toXML(desc.getDocumentWrapperClass()) +
+        "</" + documentWrapperClassElName + ">"
 
     val objectClass =
-      "<objectClass>" + xstream.toXML(desc.getObjectClass()) + "</objectClass>"
+      "<" + objectClassElName + ">" + xstream.toXML(desc.getObjectClass()) +
+        "</" + objectClassElName + ">"
 
     val fixedProperties: String =
-      "<fixedProperties>" +
+      "<" + fixedPropsElName + ">" +
         (for (i <- 0 until desc.getNumOfFixedProperties())
           yield fixedPropertyToXml(desc.getFixedProperty(i))).mkString +
-        "</fixedProperties>"
+        "</" + fixedPropsElName + ">"
 
     val indexProperties: String =
-      "<indexes>" +
+      "<" + indexPropsElName + ">" +
         desc.getIndexes().map(pair => indexToXml(pair._2)).mkString +
-        "</indexes>"
+        "</" + indexPropsElName + ">"
 
     head + fifoGroupingIndexesPaths + fixedProperties + indexProperties + documentWrapperClass + objectClass + end
   }
@@ -82,6 +109,7 @@ object SpaceTypeDescriptorMarshaller {
         "storageType=\"" + sPropertyDescriptor.getStorageType() + commentFriendlyQuote +
         "documentSupport=\"" + sPropertyDescriptor.getDocumentSupport() + commentFriendlyQuote +
         "typeName=\"" + sPropertyDescriptor.getTypeName() + "\">"
+
     val end =
       "</fixProperty>"
 
@@ -91,87 +119,265 @@ object SpaceTypeDescriptorMarshaller {
     head + typ + end
   }
 
+  /**
+   * Marshals single SpaceIndex so that can be added to the xml document
+   */
   def indexToXml(spaceIndex: SpaceIndex): String =
     "<index name=\"" + spaceIndex.getName() + "\" type=\"" + spaceIndex.getIndexType() + "\"/>"
 
-  def unmarshallSpaceDesc(xmlS: String): SpaceTypeDescriptor = {
+  /**
+   * Unmarshalls all SpaceTypeDescriptors at one go, this is how it manage to keep inheritance
+   */
+  def unmarshallAllSpaceDesc(nodes: Array[String]): Iterator[SpaceTypeDescriptor] = {
+    var currentSpaceTypesMap = Map[String, SpaceTypeDescriptor]()
+    var decodedXmls = nodes.map(decodeXmlOfSpaceType(_))
 
+    while (!decodedXmls.isEmpty) {
+      decodedXmls.foreach(m => {
+        if (currentSpaceTypesMap.containsKey(m(superTypeName)))
+          currentSpaceTypesMap = currentSpaceTypesMap + ((
+            m(typeName).toString, unmarshallSpaceDescWithSuperType(m, currentSpaceTypesMap(m(superTypeName).toString))))
+        if (m(superTypeName) == "java.lang.Object")
+          currentSpaceTypesMap = currentSpaceTypesMap + ((m(typeName).toString, unmarshallSpaceDesc(m)))
+      })
+
+      decodedXmls = decodedXmls.filterNot(m =>
+        currentSpaceTypesMap.containsKey(m(superTypeName)) || m(superTypeName) == "java.lang.Object")
+
+    }
+
+    currentSpaceTypesMap.values.toIterator
+  }
+
+  //Unmarshals single SpaceTypeDesc without super type
+  private[this] def unmarshallSpaceDesc(builderValues: Map[String, AnyRef]): SpaceTypeDescriptor = {
+
+    val typName: String = builderValues(typeName) match { case x: String => x; case _ => throw new ClassCastException }
+    var typBuilder: SpaceTypeDescriptorBuilder = new SpaceTypeDescriptorBuilder(typName)
+    typBuilder = addId(builderValues, typBuilder, true)
+    typBuilder = addRouting(builderValues, typBuilder, true)
+
+    typBuilder = addFixeds(builderValues, null, typBuilder)
+    typBuilder = addAdditional(builderValues, null, typBuilder)
+
+    typBuilder = addIndexs(builderValues, typBuilder, new HashMap[String, SpaceIndex]())
+
+    typBuilder.create
+  }
+
+  //Unmarshals single SpaceTypeDesc with super type
+  private[this] def unmarshallSpaceDescWithSuperType(builderValues: Map[String, AnyRef],
+    superType: SpaceTypeDescriptor): SpaceTypeDescriptor = {
+
+    val typName: String = builderValues(typeName) match { case x: String => x; case _ => throw new ClassCastException }
+    var typBuilder: SpaceTypeDescriptorBuilder = new SpaceTypeDescriptorBuilder(typName, superType)
+    typBuilder = addId(builderValues, typBuilder,
+      (superType.getIdPropertyName == null || superType.getIdPropertyName == ""))
+    typBuilder = addRouting(builderValues, typBuilder,
+      (superType.getRoutingPropertyName == null || superType.getRoutingPropertyName == ""))
+    typBuilder = addFixeds(builderValues, superType, typBuilder)
+    typBuilder = addIndexs(builderValues, typBuilder, superType.getIndexes)
+    typBuilder = addAdditional(builderValues, superType, typBuilder)
+
+    typBuilder.create
+  }
+
+  private[this] def addId(builderValues: Map[String, AnyRef],
+    typBuilder: SpaceTypeDescriptorBuilder, additionalCheck: Boolean): SpaceTypeDescriptorBuilder = {
+    val idFromMap = builderValues.get(idAttName)
+    if (additionalCheck && idFromMap.isDefined) {
+      val idHolder: IdHolder = idFromMap.get match { case x: IdHolder => x; case _ => throw new ClassCastException }
+      typBuilder.idProperty(idHolder.key, idHolder.auto, idHolder.index)
+    } else
+      typBuilder
+  }
+
+  private[this] def addRouting(builderValues: Map[String, AnyRef], typBuilder: SpaceTypeDescriptorBuilder,
+    additionalCheck: Boolean): SpaceTypeDescriptorBuilder = {
+    val routingFromMap = builderValues.get(routingAttName)
+    if (additionalCheck && routingFromMap.isDefined) {
+      val rHolder: RoutingHolder = routingFromMap.get match { case x: RoutingHolder => x }
+      typBuilder.routingProperty(rHolder.key, rHolder.index)
+    } else
+      typBuilder
+  }
+
+  private[this] def addFixeds(builderValues: Map[String, AnyRef], superType: SpaceTypeDescriptor,
+    typBuilder: SpaceTypeDescriptorBuilder): SpaceTypeDescriptorBuilder = {
+    var tempTypBuilder = typBuilder
+    val fixedProp = builderValues.get(fixedPropsElName)
+    if (!fixedProp.isEmpty) {
+      val fixedPropArray: Seq[FixedHolder] =
+        fixedProp.get match { case x: Seq[FixedHolder] => x; case _ => throw new ClassCastException }
+      fixedPropArray.foreach(fix =>
+        if (superType == null || superType.getFixedProperty(fix.key) == null)
+          tempTypBuilder = tempTypBuilder.addFixedProperty(fix.key, fix.typ, fix.docSupport, fix.storage))
+    }
+    tempTypBuilder
+  }
+
+  private[this] def addIndexs(builderValues: Map[String, AnyRef], typBuilder: SpaceTypeDescriptorBuilder,
+    superIndexs: java.util.Map[String, SpaceIndex]): SpaceTypeDescriptorBuilder = {
+    var tempTypBuilder = typBuilder
+    val indexProp = builderValues.get(indexPropsElName)
+    if (!indexProp.isEmpty) {
+      val indexPropArray: Seq[IndexHolder] =
+        indexProp.get match { case x: Seq[IndexHolder] => x; case _ => throw new ClassCastException }
+      indexPropArray.foreach(ind => {
+        if (!superIndexs.contains(ind.key))
+          if (ind.pathKey) tempTypBuilder = tempTypBuilder.addPathIndex(ind.key, ind.index)
+          else tempTypBuilder = tempTypBuilder.addPropertyIndex(ind.key, ind.index)
+      })
+    }
+    tempTypBuilder
+  }
+
+  private[this] def addAdditional(builderValues: Map[String, AnyRef], superType: SpaceTypeDescriptor,
+    typBuilder: SpaceTypeDescriptorBuilder): SpaceTypeDescriptorBuilder = {
+    var tempTypBuilder = typBuilder
+    val additionalBooleanValues = builderValues("additionalBooleanValues") match {
+      case x: AdditionalBooleanValues => x; case _ => throw new ClassCastException
+    }
+    tempTypBuilder = tempTypBuilder
+      .supportsDynamicProperties(additionalBooleanValues.dynamicProperties)
+      .supportsOptimisticLocking(additionalBooleanValues.optimisticLocking)
+      .replicable(additionalBooleanValues.replicable)
+
+    val additionalAttributeStringValues = builderValues("additionalAttributeStringValues") match {
+      case x: AdditionalAttributeStringValues => x; case _ => throw new ClassCastException
+    }
+
+    tempTypBuilder = tempTypBuilder.fifoSupport(additionalAttributeStringValues.fifoSupport)
+    if (superType == null || superType.getStorageType == null)
+      tempTypBuilder = tempTypBuilder.storageType(additionalAttributeStringValues.storageType)
+
+    if ((superType == null || superType.getFifoGroupingPropertyPath() == null) &&
+      additionalAttributeStringValues.fifoGroupingPropertyPath != null)
+      tempTypBuilder = tempTypBuilder.fifoGroupingProperty(additionalAttributeStringValues.fifoGroupingPropertyPath)
+
+    val additionalElValues = builderValues("additionalElValues") match {
+      case x: AdditionalElValues => x; case _ => throw new ClassCastException
+    }
+
+    tempTypBuilder = tempTypBuilder.documentWrapperClass(additionalElValues.documentWrapperClass)
+    additionalElValues.fifoGroupingIndexesPaths.foreach(i => tempTypBuilder = tempTypBuilder.addFifoGroupingIndex(i))
+
+    tempTypBuilder
+  }
+
+  //Extracts all the data stored in a xml SpaceTypeDescriptor
+  private[this] def decodeXmlOfSpaceType(xmlS: String): Map[String, AnyRef] = {
     val xml: Node = XML.loadString(xmlS)
     val attributes = xml.attributes.asAttrMap
-    val id = attributes.get("id").get
-    val routing = attributes.get("routing").get
-    var typ: SpaceTypeDescriptorBuilder = new SpaceTypeDescriptorBuilder(attributes.get("type").get)
-      .supportsDynamicProperties(attributes.get("dynamicProperties").get.toBoolean)
-      .supportsOptimisticLocking(attributes.get("optimisticLocking").get.toBoolean)
-      .replicable(attributes.get("replicable").get.toBoolean)
-      .storageType(StorageType.valueOf(attributes.get("storageType").get))
-      .fifoSupport(FifoSupport.valueOf(attributes.get("fifoSupport").get))
-    if (attributes.get("fifoGroupingPropertyPath").get != "null")
-      typ = typ.addFifoGroupingIndex(attributes.get("fifoGroupingPropertyPath").get)
+    val id = attributes.get(idAttName).get
+    val auto = attributes.get(autoGenerateIdAttName).get.toBoolean
+    val routing = attributes.get(routingAttName).get
 
-    var indexMap: MMap[String, SpaceIndexType] = null
-    
+    var map = Map[String, AnyRef]()
+    map = map + ((typeName, attributes.get(typeName).get))
+    map = map + ((superTypeName, attributes.get(superTypeName).get))
+    map = map + ((typeSimpleName, attributes.get(typeSimpleName).get))
+
+    map = decodeAdditionalAttributes(attributes, map)
+
+    var indexSeq: Seq[IndexHolder] = null
+    var fifoPaths: java.util.Set[String] = null
+    var fixedProp: Seq[FixedHolder] = null
+    var documentWrapperClass: Class[SpaceDocument] = null
+
     xml.child.foreach(node => {
-      if (node.label == "fifoGroupingIndexesPaths")
-        xstream.fromXML(node.child(0).buildString(true)) match {
-          case set: java.util.Set[String] => set.foreach(i => typ = typ.addFifoGroupingIndex(i))
-        }
-      if (node.label == "fixedProperties")
-        node.child.foreach(childNode => typ = addfixedPropFromXml(typ, childNode))
-      if (node.label == "indexes")
-        indexMap = buildIndexMap(node.child)
-      if (node.label == "documentWrapperClass")
-        typ = typ.documentWrapperClass(
-          xstream.fromXML(node.child(0).buildString(true)) match {
-            case x: Class[SpaceDocument] => x
-          })
+      if (node.label == fifoGroupingIndexesPathsElName)
+        fifoPaths = xstream.fromXML(node.child(0).buildString(true)) match { case set: java.util.Set[String] => set }
+      if (node.label == fixedPropsElName)
+        fixedProp = node.child.map(childNode => decodeFixedPropFromXml(childNode))
+      //Cannot place indexes due to id/rout problem
+      if (node.label == indexPropsElName) indexSeq = decodeIndexsFromXml(node.child)
+      if (node.label == documentWrapperClassElName)
+        documentWrapperClass =
+          xstream.fromXML(node.child(0).buildString(true)) match { case x: Class[SpaceDocument] => x }
     })
 
-    //This will handle if the routing and id fields have an additional index
-    val idIndex = indexMap.getOrElse(id,SpaceIndexType.BASIC)
-    indexMap.remove(id)
-     val routingIndex = indexMap.getOrElse(routing,SpaceIndexType.BASIC)
-    indexMap.remove(routing)
-    
-    typ = addIndexes(typ,indexMap)
-    typ = typ
-      .idProperty(id, attributes.get("autoGenerateId").get.toBoolean,idIndex)
-      .routingProperty(routing,routingIndex)
+    map = map + (("additionalElValues", AdditionalElValues(fifoPaths, documentWrapperClass, null)))
+    map = map + ((fixedPropsElName, fixedProp))
+    map = map + ((indexPropsElName, indexSeq.filterNot(p => p.key == id || p.key == routing)))
 
-    typ.create
-  }
-
-  private[this] def addIndexes(typ: SpaceTypeDescriptorBuilder,
-    indexes: MMap[String, SpaceIndexType]): SpaceTypeDescriptorBuilder = {
-    var tempTyp = typ
-    indexes.foreach(indexPair => {
-      if (indexPair._1.contains('.'))
-        tempTyp = tempTyp.addPathIndex(indexPair._1, indexPair._2)
-      else
-        tempTyp = tempTyp.addPropertyIndex(indexPair._1, indexPair._2)
+    indexSeq.foreach(i => {
+      if (i.key == id) {
+        map = map + ((idAttName, IdHolder(id, auto, i.index)))
+      }
+      if (i.key == routing) {
+        map = map + ((routingAttName, RoutingHolder(routing, i.index)))
+      }
     })
-    tempTyp
+
+    map
   }
 
-  private[this] def addfixedPropFromXml(typ: SpaceTypeDescriptorBuilder, child: Node): SpaceTypeDescriptorBuilder = {
-    val attributes = child.attributes.asAttrMap
-    val typOfFix = xstream.fromXML(child.child(0).child(0).buildString(true)) match { case x: Class[_] => x }
+  private[this] def decodeAdditionalAttributes(attributes: Map[String, String],
+    map: Map[String, AnyRef]): Map[String, AnyRef] = {
+
+    val additionalBooleanValues = AdditionalBooleanValues(attributes.get(dynamicPropertiesAttName).get.toBoolean,
+      attributes.get(optimisticLockingAttName).get.toBoolean, attributes.get(replicableAttName).get.toBoolean)
+
+    val fifiGroupP =
+      if (attributes.get(fifoGroupingPropertyPathAttName).get == "null") null
+      else attributes.get(fifoGroupingPropertyPathAttName).get
+    val additionalAttributeStringValues = AdditionalAttributeStringValues(
+      StorageType.valueOf(attributes.get(storageTypeAttName).get),
+      FifoSupport.valueOf(attributes.get(fifoSupportAttName).get),
+      fifiGroupP)
+    map + (("additionalAttributeStringValues", additionalAttributeStringValues),
+      ("additionalBooleanValues", additionalBooleanValues))
+  }
+
+  private[this] def decodeFixedPropFromXml(node: Node): FixedHolder = {
+    val attributes = node.attributes.asAttrMap
+    val typOfFix = xstream.fromXML(node.child(0).child(0).buildString(true)) match { case x: Class[_] => x }
     val storageType = StorageType.valueOf(attributes.get("storageType").get)
     val documentSupport = SpaceDocumentSupport.valueOf(attributes.get("documentSupport").get)
     val name = attributes.get("name").get
-
-    typ.addFixedProperty(name, typOfFix, documentSupport, storageType)
+    FixedHolder(name, typOfFix, storageType, documentSupport)
   }
 
-  private[this] def buildIndexMap(indexSet: Seq[Node]): MMap[String, SpaceIndexType] = {
-    var map = MMap[String, SpaceIndexType]()
-    indexSet.foreach(child => {
+  private[this] def decodeIndexsFromXml(indexSeq: Seq[Node]): Seq[IndexHolder] = {
+    indexSeq.map(child => {
       val attributes = child.attributes.asAttrMap
       val id: String = attributes.get("name").get
       val indexType = SpaceIndexType.valueOf(attributes.get("type").get)
-      if (!map.contains(id) || map.get(id).get == SpaceIndexType.NONE ||
-        map.get(id).get == SpaceIndexType.BASIC && indexType == SpaceIndexType.EXTENDED) map.put(id, indexType)
+      IndexHolder(id, indexType, id.contains("."))
     })
-    map
   }
+
+  /**
+   * Helper class to decode data in xml file
+   */
+  case class IdHolder(key: String, auto: Boolean, index: SpaceIndexType)
+  /**
+   * Helper class to decode data in xml file
+   */
+  case class RoutingHolder(key: String, index: SpaceIndexType)
+  /**
+   * Helper class to decode data in xml file
+   */
+  case class IndexHolder(key: String, index: SpaceIndexType, pathKey: Boolean)
+  /**
+   * Helper class to decode data in xml file
+   */
+  case class FixedHolder(key: String, typ: Class[_], storage: StorageType, docSupport: SpaceDocumentSupport)
+  /**
+   * Helper class to decode data in xml file
+   */
+  case class AdditionalBooleanValues(dynamicProperties: Boolean, optimisticLocking: Boolean, replicable: Boolean)
+  /**
+   * Helper class to decode data in xml file
+   */
+  case class AdditionalAttributeStringValues(storageType: StorageType,
+    fifoSupport: FifoSupport, fifoGroupingPropertyPath: String)
+  /**
+   * Helper class to decode data in xml file
+   */
+  case class AdditionalElValues(fifoGroupingIndexesPaths: java.util.Set[String],
+    documentWrapperClass: Class[com.gigaspaces.document.SpaceDocument], objectClass: Class[_])
 }
+
+

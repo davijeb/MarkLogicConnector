@@ -32,7 +32,6 @@ class MarkLogicReader(contentSource: ContentSource, nameSpace: String) extends R
   private[this] val logger: Logger = Logger.getLogger(classOf[MarkLogicReader].getCanonicalName())
 
   override def read(query: String): Object = {
-    logger.info(query)
     try {
       val session = contentSource.newSession()
       val request = session.newAdhocQuery(query)
@@ -51,13 +50,26 @@ class MarkLogicReader(contentSource: ContentSource, nameSpace: String) extends R
   }
 
   override def readMany(query: String): ResultSequence = {
-    logger.info(query)
     try {
       val session = contentSource.newSession()
       val request = session.newAdhocQuery(query)
       val options = new RequestOptions
       options.setCacheResult(false)
       request.setOptions(options)
+      session.submitRequest(request)
+    } catch {
+      case x: Throwable => {
+        val msg = "Cannot execute query due to " + x.getMessage()
+        logger.log(Level.SEVERE, msg)
+        null
+      }
+    }
+  }
+
+  override def readSpaceTypeDescriptors(query : String) : ResultSequence = {
+    try {
+      val session = contentSource.newSession()
+      val request = session.newAdhocQuery(query)
       session.submitRequest(request)
     } catch {
       case x: Throwable => {

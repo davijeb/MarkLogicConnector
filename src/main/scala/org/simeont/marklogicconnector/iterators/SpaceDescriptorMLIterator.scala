@@ -28,8 +28,13 @@ import org.simeont.marklogicconnector.xml.Marshaller
  * Iterator specifically design for returning SpaceTypeDescriptors extracted from MarkLogic
  */
 class SpaceDescriptorMLIterator(resultSequence: ResultSequence)
-  extends MLIterator[SpaceTypeDescriptor](resultSequence) {
+  extends DataIterator[SpaceTypeDescriptor] {
 
-  override def fromXml(item: ResultItem): SpaceTypeDescriptor =
-    SpaceTypeDescriptorMarshaller.unmarshallSpaceDesc(item.getItem().asString())
+  val nodes = resultSequence.asStrings()
+  val iterator = SpaceTypeDescriptorMarshaller.unmarshallAllSpaceDesc(nodes)
+
+  def close(): Unit = ()
+  def hasNext(): Boolean = iterator.hasNext
+  def next(): com.gigaspaces.metadata.SpaceTypeDescriptor = iterator.next
+  def remove(): Unit = ()
 }
