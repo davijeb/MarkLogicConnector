@@ -1,5 +1,5 @@
-MarkLogicConnector
-==================
+MarkLogicConnector for GigaSpaces
+=================================
 
 GigaSpace interface to MarkLogic
 
