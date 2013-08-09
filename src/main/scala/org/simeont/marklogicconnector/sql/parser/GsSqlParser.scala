@@ -35,15 +35,15 @@ object GsSqlParser extends RegexParsers {
 
   def combination: Parser[Exp] =  sqlExp |  andCombination
 
-  def andCombination: Parser[Exp] = combination ~ rep("AND" ~ combination) ^^ {
+  def andCombination: Parser[Exp] = combination ~ rep("and" ~ combination) ^^ {
     case number ~ list => list.foldLeft(number) {
-      case (x, "AND" ~ y) => And(List(x, y))
+      case (x, "and" ~ y) => And(List(x, y))
     }
   }
 
-  def expr: Parser[Exp] = andCombination ~ rep( "OR" ~ andCombination) ^^ {
+  def expr: Parser[Exp] = andCombination ~ rep( "or" ~ andCombination) ^^ {
     case number ~ list => list.foldLeft(number) {
-      case (x, "OR" ~ y) => Or(List(x, y))
+      case (x, "or" ~ y) => Or(List(x, y))
     }
   }
 

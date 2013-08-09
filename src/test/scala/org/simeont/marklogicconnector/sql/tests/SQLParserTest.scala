@@ -40,15 +40,18 @@ class SQLParserTest extends FunSuite {
   }
 
   test("and/or sql expression") {
-    assert(GsSqlParser("a < ? AND b = ?") === And(List(Less("a"), Eq("b"))))
-    assert(GsSqlParser("b = ? OR k >= ?") === Or(List(Eq("b"), GreaterEq("k"))))
+    assert(GsSqlParser("a < ? and b = ?") === And(List(Less("a"), Eq("b"))))
+    assert(GsSqlParser("b = ? or k >= ?") === Or(List(Eq("b"), GreaterEq("k"))))
   }
 
   test("complex sql expression") {
-    assert(GsSqlParser("a < ? AND b = ? OR k >= ?") === Or(List(And(List(Less("a"), Eq("b"))), GreaterEq("k"))))
-    assert(GsSqlParser("a > ? AND a < ? AND b = ? OR k >= ?") === Or(List(And(List(Greater("a"), Less("a"), Eq("b"))), GreaterEq("k"))))
-    assert(GsSqlParser("a > ? AND a < ? OR b = ? AND k >= ?") === Or(List(And(List(Greater("a"), Less("a"))), And(List(Eq("b"), GreaterEq("k"))))))
-    assert(GsSqlParser("a > ? OR a < ? OR b = ? OR k >= ?") === Or(List(Greater("a"), Less("a"), Eq("b"), GreaterEq("k"))))
-    assert(GsSqlParser("a < ? AND b = ? AND k >= ?") === And(List(Less("a"), Eq("b"), GreaterEq("k"))))
+    assert(GsSqlParser("a < ? and b = ? or k >= ?") === Or(List(And(List(Less("a"), Eq("b"))), GreaterEq("k"))))
+    assert(GsSqlParser("a > ? and a < ? and b = ? or k >= ?") ===
+      Or(List(And(List(Greater("a"), Less("a"), Eq("b"))), GreaterEq("k"))))
+    assert(GsSqlParser("a > ? and a < ? or b = ? and k >= ?") ===
+      Or(List(And(List(Greater("a"), Less("a"))), And(List(Eq("b"), GreaterEq("k"))))))
+    assert(GsSqlParser("a > ? or a < ? or b = ? or k >= ?") ===
+      Or(List(Greater("a"), Less("a"), Eq("b"), GreaterEq("k"))))
+    assert(GsSqlParser("a < ? and b = ? and k >= ?") === And(List(Less("a"), Eq("b"), GreaterEq("k"))))
   }
 }

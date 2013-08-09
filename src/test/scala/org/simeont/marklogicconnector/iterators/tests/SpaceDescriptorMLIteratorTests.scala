@@ -81,7 +81,7 @@ class SpaceDescriptorMLIteratorTests extends FunSuite with MockitoSugar {
       if (f.getTypeName() == innerDescClass.getTypeName()) compareSpaceTypes(f, innerDescClass)
     })
   }
-  
+
   private[this] def compareSpaceTypes(t1: SpaceTypeDescriptor, t2: SpaceTypeDescriptor): Unit = {
     assert(t1.getDocumentWrapperClass() === t2.getDocumentWrapperClass())
     assert(t1.getFifoGroupingIndexesPaths() === t2.getFifoGroupingIndexesPaths())
