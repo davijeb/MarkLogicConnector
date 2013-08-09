@@ -35,6 +35,6 @@ class SpaceDescriptorMLIterator(resultSequence: ResultSequence)
 
   def close(): Unit = ()
   def hasNext(): Boolean = iterator.hasNext
-  def next(): com.gigaspaces.metadata.SpaceTypeDescriptor = iterator.next
+  def next(): com.gigaspaces.metadata.SpaceTypeDescriptor = if(iterator.hasNext) iterator.next else null
   def remove(): Unit = ()
 }

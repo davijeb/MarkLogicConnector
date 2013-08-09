@@ -31,25 +31,20 @@ class ObjectMLIterator(resultSequence: ResultSequence, xmlMarshaller: Marshaller
 
   private[this] val waitTime = 25
 
-  override def close = try {
-    resultSequence.close()
-  } catch {
-    case _: Throwable => logger.warning("Cannont close resultSequence")
-  }
+  override def close = resultSequence.close()
 
   override def hasNext: Boolean = resultSequence.hasNext()
 
   override def next: Object = {
     try {
-      val nextItem = resultSequence.next()
-      while (!nextItem.isFetchable())
-        try {
-          Thread.sleep(waitTime)
-        } catch {
-          case ie: InterruptedException => ()
-        }
+      if (!resultSequence.hasNext()) null
+      else {
+        val nextItem = resultSequence.next()
+        while (!nextItem.isFetchable())
+          try { Thread.sleep(waitTime) } catch { case ie: InterruptedException => () }
 
-      xmlMarshaller.fromXML(nextItem.getItem().asString())
+        xmlMarshaller.fromXML(nextItem.asString())
+      }
     } catch {
       case e: Throwable => {
         logger.warning("Error while trying to read resultSequence " + e.getMessage())
