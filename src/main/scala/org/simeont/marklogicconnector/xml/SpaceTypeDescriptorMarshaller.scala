@@ -30,8 +30,11 @@ import com.gigaspaces.document.SpaceDocument
 import com.gigaspaces.metadata.SpaceDocumentSupport
 import com.gigaspaces.metadata.index.SpaceIndexType
 import java.util.HashMap
+import java.util.logging.Logger
 
 object SpaceTypeDescriptorMarshaller {
+
+  private[this] val logger: Logger = Logger.getLogger("SpaceTypeDescriptorMarshaller")
 
   private[this] val xstream: XStream = new XStream
 
@@ -54,6 +57,7 @@ object SpaceTypeDescriptorMarshaller {
   private[this] val fifoGroupingIndexesPathsElName = "fifoGroupingIndexesPaths"
   private[this] val documentWrapperClassElName = "documentWrapperClass"
   private[this] val objectClassElName = "objectClass"
+
 
   /**
    * Marshals single SpaceTypeDescriptor
@@ -141,9 +145,7 @@ object SpaceTypeDescriptorMarshaller {
           currentSpaceTypesMap = currentSpaceTypesMap + ((m(typeName).toString, unmarshallSpaceDesc(m)))
       })
 
-      decodedXmls = decodedXmls.filterNot(m =>
-        currentSpaceTypesMap.containsKey(m(superTypeName)) || m(superTypeName) == "java.lang.Object")
-
+      decodedXmls = decodedXmls.filterNot(m => currentSpaceTypesMap.containsKey(m(typeName)))
     }
 
     currentSpaceTypesMap.values.toIterator
@@ -153,16 +155,19 @@ object SpaceTypeDescriptorMarshaller {
   private[this] def unmarshallSpaceDesc(builderValues: Map[String, AnyRef]): SpaceTypeDescriptor = {
 
     val typName: String = builderValues(typeName) match { case x: String => x; case _ => throw new ClassCastException }
-    var typBuilder: SpaceTypeDescriptorBuilder = new SpaceTypeDescriptorBuilder(typName)
-    typBuilder = addId(builderValues, typBuilder, true)
-    typBuilder = addRouting(builderValues, typBuilder, true)
+    val clas: Option[Class[_]] = tryToFindClass(typName)
+    if (clas.isDefined) {
+      createFromClass(builderValues, null, clas)
+    } else {
+      var typBuilder: SpaceTypeDescriptorBuilder = new SpaceTypeDescriptorBuilder(typName)
+      typBuilder = addId(builderValues, typBuilder, true)
+      typBuilder = addRouting(builderValues, typBuilder, true)
+      typBuilder = addFixeds(builderValues, null, typBuilder)
+      typBuilder = addAdditional(builderValues, null, typBuilder)
+      typBuilder = addIndexs(builderValues, typBuilder, new HashMap[String, SpaceIndex]())
 
-    typBuilder = addFixeds(builderValues, null, typBuilder)
-    typBuilder = addAdditional(builderValues, null, typBuilder)
-
-    typBuilder = addIndexs(builderValues, typBuilder, new HashMap[String, SpaceIndex]())
-
-    typBuilder.create
+      typBuilder.create
+    }
   }
 
   //Unmarshals single SpaceTypeDesc with super type
@@ -170,16 +175,36 @@ object SpaceTypeDescriptorMarshaller {
     superType: SpaceTypeDescriptor): SpaceTypeDescriptor = {
 
     val typName: String = builderValues(typeName) match { case x: String => x; case _ => throw new ClassCastException }
-    var typBuilder: SpaceTypeDescriptorBuilder = new SpaceTypeDescriptorBuilder(typName, superType)
-    typBuilder = addId(builderValues, typBuilder,
-      (superType.getIdPropertyName == null || superType.getIdPropertyName == ""))
-    typBuilder = addRouting(builderValues, typBuilder,
-      (superType.getRoutingPropertyName == null || superType.getRoutingPropertyName == ""))
-    typBuilder = addFixeds(builderValues, superType, typBuilder)
-    typBuilder = addIndexs(builderValues, typBuilder, superType.getIndexes)
-    typBuilder = addAdditional(builderValues, superType, typBuilder)
+    val clas: Option[Class[_]] = tryToFindClass(typName)
+    if (clas.isDefined) {
+      createFromClass(builderValues, superType, clas)
+    } else {
+      var typBuilder: SpaceTypeDescriptorBuilder = new SpaceTypeDescriptorBuilder(typName, superType)
+      typBuilder = addId(builderValues, typBuilder, superType.getIdPropertyName == null)
+      typBuilder = addRouting(builderValues, typBuilder, superType.getRoutingPropertyName == null)
+      typBuilder = addFixeds(builderValues, superType, typBuilder)
+      typBuilder = addIndexs(builderValues, typBuilder, superType.getIndexes)
+      typBuilder = addAdditional(builderValues, superType, typBuilder)
 
+      typBuilder.create
+    }
+  }
+
+  private[this] def createFromClass(builderValues: Map[String, AnyRef], superType: SpaceTypeDescriptor,
+    clas: Option[Class[_]]): SpaceTypeDescriptor = {
+    var typBuilder: SpaceTypeDescriptorBuilder = new SpaceTypeDescriptorBuilder(clas.get, superType)
+    val temTyp = new SpaceTypeDescriptorBuilder(clas.get, superType)
+    typBuilder = addIndexs(builderValues, typBuilder, temTyp.create.getIndexes())
     typBuilder.create
+  }
+
+  private[this] def tryToFindClass(typName: String): Option[Class[_]] = {
+    try {
+      val mar = xstream.fromXML("<java-class>" + typName + "</java-class>")
+      Some(mar match { case x: Class[_] => x; case _ => throw new ClassCastException })
+    } catch {
+      case x: Throwable => None
+    }
   }
 
   private[this] def addId(builderValues: Map[String, AnyRef],
@@ -188,6 +213,7 @@ object SpaceTypeDescriptorMarshaller {
     if (additionalCheck && idFromMap.isDefined) {
       val idHolder: IdHolder = idFromMap.get match { case x: IdHolder => x; case _ => throw new ClassCastException }
       typBuilder.idProperty(idHolder.key, idHolder.auto, idHolder.index)
+
     } else
       typBuilder
   }
@@ -226,7 +252,7 @@ object SpaceTypeDescriptorMarshaller {
       indexPropArray.foreach(ind => {
         if (!superIndexs.containsKey(ind.key))
           if (ind.pathKey) tempTypBuilder = tempTypBuilder.addPathIndex(ind.key, ind.index)
-          else{
+          else {
             tempTypBuilder = tempTypBuilder.addPropertyIndex(ind.key, ind.index)
           }
       })
@@ -380,6 +406,7 @@ object SpaceTypeDescriptorMarshaller {
    */
   case class AdditionalElValues(fifoGroupingIndexesPaths: java.util.Set[String],
     documentWrapperClass: Class[com.gigaspaces.document.SpaceDocument], objectClass: Class[_])
+
 }
 
 

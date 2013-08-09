@@ -27,6 +27,8 @@ import org.simeont.marklogicconnector.xml.SpaceTypeDescriptorMarshaller
 import scala.xml.Node
 import scala.xml.XML
 import com.gigaspaces.annotation.pojo.FifoSupport
+import com.gigaspaces.annotation.pojo.SpaceClass
+import com.thoughtworks.xstream.XStream
 
 class SpaceTypeDescriptorMarshallerTests extends FunSuite {
 
@@ -71,20 +73,46 @@ class SpaceTypeDescriptorMarshallerTests extends FunSuite {
 
     val supMarshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(sup)
     val marshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(spacedesc)
-    val unMarshalled = SpaceTypeDescriptorMarshaller.unmarshallAllSpaceDesc(Array(supMarshalled,marshalled))
+    val unMarshalled = SpaceTypeDescriptorMarshaller.unmarshallAllSpaceDesc(Array(supMarshalled, marshalled))
     unMarshalled.next
-    compareSpaceTypes( unMarshalled.next, spacedesc)
+    compareSpaceTypes(unMarshalled.next, spacedesc)
   }
-  
-  test("should unmarshall xml to SpaceTypeDescriptor with Fifo ON"){
+
+  test("should unmarshall xml to SpaceTypeDescriptor with Fifo ON") {
     val fifoOn = standardSpaceDescBuilder
-    .fifoSupport(FifoSupport.DEFAULT)
-    .fifoGroupingProperty("id")
-    .addFifoGroupingIndex("id")
-    .create
-    
+      .fifoSupport(FifoSupport.DEFAULT)
+      .fifoGroupingProperty("id")
+      .addFifoGroupingIndex("id")
+      .create
+
     val marshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(fifoOn)
     compareSpaceTypes(SpaceTypeDescriptorMarshaller.unmarshallAllSpaceDesc(Array(marshalled)).next, fifoOn)
+  }
+
+  test("should unmarshall xml to SpaceTypeDescriptor using class") {
+    val desc = new SpaceTypeDescriptorBuilder(classOf[Data], null).create
+
+    val marshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(desc)
+    compareSpaceTypes(SpaceTypeDescriptorMarshaller.unmarshallAllSpaceDesc(Array(marshalled)).next, desc)
+  }
+
+  test("should unmarshall xml to SpaceTypeDescriptor using class and inheritence") {
+    val desc = new SpaceTypeDescriptorBuilder(classOf[Data], null).create
+    val innerDesc = new SpaceTypeDescriptorBuilder(classOf[DataChild], desc).create
+
+    val iterator = SpaceTypeDescriptorMarshaller.unmarshallAllSpaceDesc(Array(
+      SpaceTypeDescriptorMarshaller.marshallSpaceDesc(desc),
+      SpaceTypeDescriptorMarshaller.marshallSpaceDesc(innerDesc)))
+    val next = iterator.next
+    val last = iterator.next
+    
+    if (next.getTypeName() == "org.simeont.marklogicconnector.xml.tests.Data") {
+      compareSpaceTypes(next, desc)
+      compareSpaceTypes(last, innerDesc)
+    } else {
+      compareSpaceTypes(last, desc)
+      compareSpaceTypes(next, innerDesc)
+    }
   }
 
   private[this] def compareSpaceTypes(t1: SpaceTypeDescriptor, t2: SpaceTypeDescriptor): Unit = {
@@ -109,3 +137,5 @@ class SpaceTypeDescriptorMarshallerTests extends FunSuite {
   }
 }
 
+@SpaceClass class Data()
+@SpaceClass class DataChild() extends Data
