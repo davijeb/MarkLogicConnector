@@ -80,23 +80,15 @@ class SpaceTypeDescriptorMarshallerTests extends FunSuite {
 
   test("should unmarshall xml to SpaceTypeDescriptor with Fifo ON") {
     val fifoOn = standardSpaceDescBuilder
-<<<<<<< HEAD
       .fifoSupport(FifoSupport.DEFAULT)
       .fifoGroupingProperty("id")
       .addFifoGroupingIndex("id")
       .create
-=======
-    .fifoSupport(FifoSupport.DEFAULT)
-    .fifoGroupingProperty("id")
-    .addFifoGroupingIndex("id")
-    .create
->>>>>>> More test
 
     val marshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(fifoOn)
     compareSpaceTypes(SpaceTypeDescriptorMarshaller.unmarshallAllSpaceDesc(Array(marshalled)).next, fifoOn)
   }
 
-<<<<<<< HEAD
   test("should unmarshall xml to SpaceTypeDescriptor using class") {
     val desc = new SpaceTypeDescriptorBuilder(classOf[Data], null).create
 
@@ -122,8 +114,7 @@ class SpaceTypeDescriptorMarshallerTests extends FunSuite {
       compareSpaceTypes(next, innerDesc)
     }
   }
-=======
->>>>>>> More test
+
 
   private[this] def compareSpaceTypes(t1: SpaceTypeDescriptor, t2: SpaceTypeDescriptor): Unit = {
     assert(t1.getDocumentWrapperClass() === t2.getDocumentWrapperClass())

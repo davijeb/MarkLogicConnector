@@ -24,12 +24,10 @@ libraryDependencies ++= Seq(
 	"com.gigaspaces" % "gs-openspaces" % "9.6",
 	"commons-logging" % "commons-logging" % "1.1.1",
 	"com.thoughtworks.xstream" % "xstream" % "1.4.4",
-	//"org.aopalliance" % "com.springsource.org.aopalliance" % "1.0.0",
 	"com.marklogic" % "marklogic-xcc" % "6.0.3",
     "junit" % "junit" % "4.10" % "test",
     "org.scalatest" %% "scalatest" % "1.9.1" % "test",
-    //to be removed
-    "org.hibernate" % "hibernate-core" % "4.1.2"
+    "org.mockito" % "mockito-all" % "1.9.5" % "test"
 )
 
 resolvers += "MarkLogic Repository" at "http://developer.marklogic.com/maven2"
