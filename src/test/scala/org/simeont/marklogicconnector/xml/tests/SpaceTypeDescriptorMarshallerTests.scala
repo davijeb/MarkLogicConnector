@@ -80,15 +80,23 @@ class SpaceTypeDescriptorMarshallerTests extends FunSuite {
 
   test("should unmarshall xml to SpaceTypeDescriptor with Fifo ON") {
     val fifoOn = standardSpaceDescBuilder
+<<<<<<< HEAD
       .fifoSupport(FifoSupport.DEFAULT)
       .fifoGroupingProperty("id")
       .addFifoGroupingIndex("id")
       .create
+=======
+    .fifoSupport(FifoSupport.DEFAULT)
+    .fifoGroupingProperty("id")
+    .addFifoGroupingIndex("id")
+    .create
+>>>>>>> More test
 
     val marshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(fifoOn)
     compareSpaceTypes(SpaceTypeDescriptorMarshaller.unmarshallAllSpaceDesc(Array(marshalled)).next, fifoOn)
   }
 
+<<<<<<< HEAD
   test("should unmarshall xml to SpaceTypeDescriptor using class") {
     val desc = new SpaceTypeDescriptorBuilder(classOf[Data], null).create
 
@@ -114,6 +122,8 @@ class SpaceTypeDescriptorMarshallerTests extends FunSuite {
       compareSpaceTypes(next, innerDesc)
     }
   }
+=======
+>>>>>>> More test
 
   private[this] def compareSpaceTypes(t1: SpaceTypeDescriptor, t2: SpaceTypeDescriptor): Unit = {
     assert(t1.getDocumentWrapperClass() === t2.getDocumentWrapperClass())
@@ -126,7 +136,7 @@ class SpaceTypeDescriptorMarshallerTests extends FunSuite {
     assert(t1.getObjectClass() === t2.getObjectClass)
     assert(t1.getRoutingPropertyName() == t2.getRoutingPropertyName)
     assert(t1.getStorageType() === t2.getStorageType)
-    assert(t1.getSuperTypeName() === t2.getSuperTypeName) //Not passing, does not keep the master type descriptor
+    assert(t1.getSuperTypeName() === t2.getSuperTypeName)
     assert(t1.getTypeName() === t2.getTypeName)
     assert(t1.getTypeSimpleName() === t2.getTypeSimpleName)
     assert(t1.isAutoGenerateId() === t2.isAutoGenerateId)
@@ -135,6 +145,7 @@ class SpaceTypeDescriptorMarshallerTests extends FunSuite {
     assert(t1.supportsDynamicProperties() === t2.supportsDynamicProperties)
     assert(t1.supportsOptimisticLocking() === t2.supportsOptimisticLocking)
   }
+  
 }
 
 @SpaceClass class Data()
