@@ -21,6 +21,7 @@ import scala.xml.XML
 import com.gigaspaces.document.SpaceDocument
 import org.simeont.marklogicconnector.xml.grammar.Grammar
 import org.simeont.marklogicconnector.xml.grammar.BasicGrammar
+import com.gigaspaces.internal.document.DocumentObjectConverterInternal
 
 /**
  * Basic Marshaller implemented using basic grammar object
@@ -31,6 +32,8 @@ class BasicMarshaller() extends Marshaller {
 
   private[this] var grammar: Grammar = new BasicGrammar
 
+  private[this] val privateConverter = DocumentObjectConverterInternal.instance()
+  
   def setGrammar(grammar : Grammar) = this.grammar = grammar
 
   private[this] val docType = "SpaceDocument"
@@ -81,7 +84,8 @@ class BasicMarshaller() extends Marshaller {
       val body = el.child(0).buildString(true)
 
       if (typ == docType) {
-        sp.setProperty(propertyName, fromXML(body))
+        val property = tryToConvert(fromXML(body)).get
+        sp.setProperty(propertyName, property) 
       } else {
         sp.setProperty(propertyName, grammar.useGrammarToUnMarshall(propertyName, typ, body))
       }
@@ -90,5 +94,12 @@ class BasicMarshaller() extends Marshaller {
 
     sp
 
+  }
+
+  private[this] def tryToConvert(prop : SpaceDocument) : Option[Any] = {
+    try{
+     Some(privateConverter.toObject(prop))
+    }catch{case x : Throwable => {println(x.getMessage());Some(prop)}}
+    
   }
 }
