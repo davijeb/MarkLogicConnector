@@ -33,8 +33,8 @@ class BasicMarshaller() extends Marshaller {
   private[this] var grammar: Grammar = new BasicGrammar
 
   private[this] val privateConverter = DocumentObjectConverterInternal.instance()
-  
-  def setGrammar(grammar : Grammar) = this.grammar = grammar
+
+  def setGrammar(grammar: Grammar) = this.grammar = grammar
 
   private[this] val docType = "SpaceDocument"
   private[this] val openTag = "<"
@@ -46,10 +46,10 @@ class BasicMarshaller() extends Marshaller {
   /**
    * Marshals SpaceDocument to XML string using the grammar provided
    */
-  def toXML(document: SpaceDocument): String = toXML(document,true)
+  def toXML(document: SpaceDocument): String = toXML(document, true)
 
-  private[this] def toXML(document: SpaceDocument, addXS : Boolean) : String = {
-    openTag + document.getTypeName + {if(addXS) xs else ""} + endTag +
+  private[this] def toXML(document: SpaceDocument, addXS: Boolean): String = {
+    openTag + document.getTypeName + { if (addXS) xs else "" } + endTag +
       (document.getProperties().map(x => propertyToXML(x._1, x._2))).mkString +
       closedOpenTag + document.getTypeName + endTag
   }
@@ -60,7 +60,14 @@ class BasicMarshaller() extends Marshaller {
   def propertyToXML(name: String, obj: AnyRef): String = {
     obj match {
       case spDoc: SpaceDocument =>
-        constructElement(name, docType, toXML(spDoc,false))
+        val convertion = tryToConvertToObject(spDoc)
+        convertion.get match {
+          case x: SpaceDocument => constructElement(name, docType, toXML(spDoc, false))
+          case o: AnyRef => {
+            val entry = grammar.useGrammarToMarshall(name, o)
+            constructElement(name, entry.typ, entry.xmlRep)
+          }
+        }
       case o: AnyRef => {
         val entry = grammar.useGrammarToMarshall(name, o)
         constructElement(name, entry.typ, entry.xmlRep)
@@ -69,8 +76,8 @@ class BasicMarshaller() extends Marshaller {
   }
 
   //Helper method to create xml element for a property
-  private[this] def constructElement(name: String, typ: String, xml: String) = openTag + name  + " xs:type=\"" +
-  typ + "\"" + endTag + xml + closedOpenTag + name + endTag
+  private[this] def constructElement(name: String, typ: String, xml: String) = openTag + name + " xs:type=\"" +
+    typ + "\"" + endTag + xml + closedOpenTag + name + endTag
 
   /**
    * Marshals XML string to SpaceDocument using the grammar provided
@@ -84,8 +91,7 @@ class BasicMarshaller() extends Marshaller {
       val body = el.child(0).buildString(true)
 
       if (typ == docType) {
-        val property = tryToConvert(fromXML(body)).get
-        sp.setProperty(propertyName, property) 
+        sp.setProperty(propertyName, fromXML(body))
       } else {
         sp.setProperty(propertyName, grammar.useGrammarToUnMarshall(propertyName, typ, body))
       }
@@ -96,10 +102,9 @@ class BasicMarshaller() extends Marshaller {
 
   }
 
-  private[this] def tryToConvert(prop : SpaceDocument) : Option[Any] = {
-    try{
-     Some(privateConverter.toObject(prop))
-    }catch{case x : Throwable => {println(x.getMessage());Some(prop)}}
-    
+  private[this] def tryToConvertToObject(prop: SpaceDocument): Option[Any] = {
+    try {
+      Some(privateConverter.toObject(prop))
+    } catch { case x: Throwable => Some(prop) }
   }
 }

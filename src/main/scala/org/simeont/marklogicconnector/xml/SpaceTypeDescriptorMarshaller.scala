@@ -58,7 +58,6 @@ object SpaceTypeDescriptorMarshaller {
   private[this] val documentWrapperClassElName = "documentWrapperClass"
   private[this] val objectClassElName = "objectClass"
 
-
   /**
    * Marshals single SpaceTypeDescriptor
    */
@@ -190,14 +189,6 @@ object SpaceTypeDescriptorMarshaller {
     }
   }
 
-  private[this] def createFromClass(builderValues: Map[String, AnyRef], superType: SpaceTypeDescriptor,
-    clas: Option[Class[_]]): SpaceTypeDescriptor = {
-    var typBuilder: SpaceTypeDescriptorBuilder = new SpaceTypeDescriptorBuilder(clas.get, superType)
-    val temTyp = new SpaceTypeDescriptorBuilder(clas.get, superType)
-    typBuilder = addIndexs(builderValues, typBuilder, temTyp.create.getIndexes())
-    typBuilder.create
-  }
-
   private[this] def tryToFindClass(typName: String): Option[Class[_]] = {
     try {
       val mar = xstream.fromXML("<java-class>" + typName + "</java-class>")
@@ -205,6 +196,14 @@ object SpaceTypeDescriptorMarshaller {
     } catch {
       case x: Throwable => None
     }
+  }
+
+  private[this] def createFromClass(builderValues: Map[String, AnyRef], superType: SpaceTypeDescriptor,
+    clas: Option[Class[_]]): SpaceTypeDescriptor = {
+    var typBuilder: SpaceTypeDescriptorBuilder = new SpaceTypeDescriptorBuilder(clas.get, superType)
+    val temTyp = new SpaceTypeDescriptorBuilder(clas.get, superType)
+    typBuilder = addIndexs(builderValues, typBuilder, temTyp.create.getIndexes())
+    typBuilder.create
   }
 
   private[this] def addId(builderValues: Map[String, AnyRef],
@@ -408,5 +407,3 @@ object SpaceTypeDescriptorMarshaller {
     documentWrapperClass: Class[com.gigaspaces.document.SpaceDocument], objectClass: Class[_])
 
 }
-
-
