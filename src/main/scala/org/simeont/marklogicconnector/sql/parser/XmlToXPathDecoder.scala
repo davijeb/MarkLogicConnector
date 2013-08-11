@@ -71,7 +71,8 @@ class XmlToXPathDecoder(xmlMarshaller: Marshaller) {
 
     }
 
-    val filtered = notCombined.filter(_.ready).map(f => f.label + "[. " + comparison + " \"" + f.value.get + "\"]")
+    val filtered = notCombined.filter(_.ready).map(f => f.label + "[. " + comparison + " " +
+        typeSafeValue(f.value.get) + "]")
 
     "(" + filtered.mkString(" and ") + ")"
   }
@@ -79,11 +80,17 @@ class XmlToXPathDecoder(xmlMarshaller: Marshaller) {
   private[this] def biulldAttributes(node: Node, comparison: String): String = {
     val transaltedAttr =
       node.attributes.asAttrMap.filterNot(_._1.startsWith("xs:"))
-          .map(attribute => "(@" + attribute._1 + " " + comparison + " " + attribute._2 + ")")
-      
+          .map(attribute => "(@" + attribute._1 + " " + comparison + " " + typeSafeValue(attribute._2) + ")")
+
     if (!transaltedAttr.isEmpty)
       "[" + transaltedAttr.mkString(" and ") + "]"
     else ""
+  }
+
+  private[this] def typeSafeValue(obj : String) : String =
+    obj match{
+    case x : String if(!x.contains("[a-zA-Z]+")) => x
+    case s : String => "\"" + s + "\""
   }
 
   case class Path(var label: String, childs: Seq[String], value: Option[String], ready: Boolean)
