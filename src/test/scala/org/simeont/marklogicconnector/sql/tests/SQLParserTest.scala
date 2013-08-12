@@ -16,8 +16,7 @@
 package org.simeont.marklogicconnector.sql.tests
 
 import org.scalatest.FunSuite
-import org.simeont.marklogicconnector.sql.parser.GsSqlParser
-import org.simeont.marklogicconnector.sql.parser.data._
+import org.simeont.marklogicconnector.sql.parser._
 
 class SQLParserTest extends FunSuite {
 

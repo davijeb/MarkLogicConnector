@@ -15,8 +15,7 @@
  */
 package org.simeont.marklogicconnector.sql.parser
 
-/**
- * Contains all classes produced from parsing GigaSpaces SQL. Super type of all is
- * [[org.simeont.marklogicconnector.sql.parser.data.Exp]]
- */
-package object data
+object ComparisonType extends Enumeration {
+  type ComparisonType = Value
+  val Equal, NotEqual, LessThan, GreaterThan, LessEqual, GreaterEqual, Like, NotLike, IN = Value
+}

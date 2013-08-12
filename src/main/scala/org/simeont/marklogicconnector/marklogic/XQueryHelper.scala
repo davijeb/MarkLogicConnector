@@ -34,4 +34,24 @@ object XQueryHelper {
 
   def buildSpaceTypeDir(partialDir: String): String =
     spacetype + partialDir + slash
+
+  def buildDirectoryQuerigXQuery(dir :String, depth : String) : String =
+    "xdmp:directory(\"" + dir + "\",\"" + depth + "\")"
+
+  def builDocumentQueringXQuery(namespace: String, url: String, root: String, xpath: String): String =
+    addDefaultNamespace(namespace) + addDoc(url) + addRootElement(root) + addXPath(xpath)
+
+  private[this] def addDoc(url: String): String = "doc(" + url + ")"
+
+  private[this] def addDefaultNamespace(namespace: String): String =
+    if (namespace != "") " declare default element namespace \"" + namespace + "\";"
+    else ""
+
+  private[this] def addRootElement(root: String): String =
+    if(root != "") "/" + root
+    else ""
+
+  private[this] def addXPath(xpath: String): String =
+    if (xpath != "") "[" + xpath + "]"
+    else ""
 }

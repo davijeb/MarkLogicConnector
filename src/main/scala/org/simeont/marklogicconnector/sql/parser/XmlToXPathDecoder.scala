@@ -15,12 +15,10 @@
  */
 package org.simeont.marklogicconnector.sql.parser
 
-import org.simeont.marklogicconnector.xml.Marshaller
 import scala.xml.Node
 import scala.xml.XML
-import org.simeont.marklogicconnector.sql.parser.data.ComparisonType._
-import scala.xml.Elem
-import org.simeont.marklogicconnector.sql.parser.data.ComparisonType
+import org.simeont.marklogicconnector.sql.parser.ComparisonType._
+import org.simeont.marklogicconnector.xml.Marshaller
 
 object XmlToXPathDecoder {
 
@@ -42,18 +40,19 @@ object XmlToXPathDecoder {
     decoder(node, comparison)
   }
 
+  private[this] val TEXTNODE =  "#PCDATA"
   private[this] def decoder(node: Node, comparison: String): List[XPath] = {
     val masterLabel = node.label
-    if (node.child.size == 1 && node.child(0).label == "#PCDATA") {
+    if (node.child.size == 1 && node.child(0).label == TEXTNODE) {
       List(XPath(masterLabel + biulldAttributes(node, comparison) + "[. " + comparison + " " +
         typeSafeValue(node.text) + "]"))
     } else {
       val notCombined = node.descendant.flatMap(f => {
-        val hasText = f.child.size == 1 && f.child(0).label == "#PCDATA"
+        val hasText = f.child.size == 1 && f.child(0).label == TEXTNODE
         val text = if (hasText) Some(f.text) else None
-        if (f.label != "#PCDATA")
+        if (f.label != TEXTNODE)
           List(PrivateXPath(f.label + biulldAttributes(f, comparison),
-            f.child.filter(_.label != "#PCDATA").map(_.label),
+            f.child.filter(_.label != TEXTNODE).map(_.label),
             text,
             hasText))
         else List()

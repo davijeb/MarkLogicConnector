@@ -16,7 +16,6 @@
 package org.simeont.marklogicconnector.sql.parser
 
 import scala.util.parsing.combinator.RegexParsers
-import org.simeont.marklogicconnector.sql.parser.data._
 
 object GsSqlParser extends RegexParsers {
   def sqlExp: Parser[Exp] = """([^\s(])+\s(=|(!=)|(>=)|(IN)|(<=)|>|<|(eq))\s((\([?,\s]*?\))|\?)""".r ^^ {

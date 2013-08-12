@@ -16,7 +16,6 @@
 package org.simeont.marklogicconnector.sql
 
 /**
- * This package contains the factory that translates GigaSpaces SQL to
- * [[org.simeont.marklogicconnector.sql.parser.data.Exp]]
+ * This package contains all GS SQL translation classes and factories
  */
 package object parser

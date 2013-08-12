@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.simeont.marklogicconnector.sql.parser.data
+package org.simeont.marklogicconnector.sql.parser
 
 /**
  * The super type of all expressions produced by [[org.simeont.marklogicconnector.sql.parser.GsSqlParser]]
@@ -30,6 +30,7 @@ sealed abstract class Exp {
 sealed abstract class ConditionOperation extends Exp {
   def combined: List[Exp]
   def normilize: Unit
+  def contained : List[Exp]
 }
 
 /**
@@ -41,7 +42,7 @@ case class And(var operands: List[Exp]) extends ConditionOperation {
     case op: ConditionOperation => { op.normilize; List(op) }
     case any: Exp => List(any)
   })
-
+  override def contained : List[Exp] = operands
   override def normilize: Unit = operands = combined
   override def requiredNumObjects: Int = {
     val dataList: List[Int] = operands.map(o => o.requiredNumObjects)
@@ -58,7 +59,7 @@ case class Or(var operands: List[Exp]) extends ConditionOperation {
     case op: ConditionOperation => { op.normilize; List(op) }
     case any: Exp => List(any)
   })
-
+  override def contained : List[Exp] = operands
   override def normilize: Unit = operands = combined
   override def requiredNumObjects: Int = {
     val dataList: List[Int] = operands.map(o => o.requiredNumObjects)
