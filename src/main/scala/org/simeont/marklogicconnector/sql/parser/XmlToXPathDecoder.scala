@@ -22,9 +22,14 @@ import org.simeont.marklogicconnector.sql.parser.data.ComparisonType._
 import scala.xml.Elem
 import org.simeont.marklogicconnector.sql.parser.data.ComparisonType
 
-class XmlToXPathDecoder(xmlMarshaller: Marshaller) {
+object XmlToXPathDecoder {
 
-  def extractXPath(name: String, obj: AnyRef, comparisonType: ComparisonType): String = {
+  def createAllMatchXpath(xpaths: List[XPath]): String = {
+    if (!xpaths.isEmpty) "(" + xpaths.map(_.xpath).mkString(" and ") + ")"
+    else ""
+  }
+
+  def extractXPath(node: Node, comparisonType: ComparisonType): List[XPath] = {
     val comparison = comparisonType match {
       case ComparisonType.Equal | ComparisonType.IN => "eq"
       case ComparisonType.GreaterEqual => ">="
@@ -34,65 +39,68 @@ class XmlToXPathDecoder(xmlMarshaller: Marshaller) {
       case ComparisonType.NotEqual => "!="
       case _ => "eq"
     }
-    val marshalled = xmlMarshaller.propertyToXML(name, obj)
-    val node: Node = XML.loadString(marshalled)
     decoder(node, comparison)
   }
 
-  private[this] def decoder(node: Node, comparison: String): String = {
-    val notCombined = node.descendant.flatMap(f => {
-      val hasText = f.child.size == 1 && f.child(0).label == "#PCDATA"
-      val text = if (hasText) Some(f.text) else None
-      if (f.label != "#PCDATA")
-        List(Path(f.label + biulldAttributes(f, comparison),
-          f.child.filter(_.label != "#PCDATA").map(_.label),
-          text,
-          hasText))
-      else List()
-    })
+  private[this] def decoder(node: Node, comparison: String): List[XPath] = {
+    val masterLabel = node.label
+    if (node.child.size == 1 && node.child(0).label == "#PCDATA") {
+      List(XPath(masterLabel + biulldAttributes(node, comparison) + "[. " + comparison + " " +
+        typeSafeValue(node.text) + "]"))
+    } else {
+      val notCombined = node.descendant.flatMap(f => {
+        val hasText = f.child.size == 1 && f.child(0).label == "#PCDATA"
+        val text = if (hasText) Some(f.text) else None
+        if (f.label != "#PCDATA")
+          List(PrivateXPath(f.label + biulldAttributes(f, comparison),
+            f.child.filter(_.label != "#PCDATA").map(_.label),
+            text,
+            hasText))
+        else List()
+      })
 
-    for (i <- 0 until (notCombined.size)) {
-      val current = notCombined(i)
-      var toUpdate = 0
-      var maxToUpdate = current.childs.size
-      var j = i + 1
-      var toSkip = 0
-      while (toUpdate != maxToUpdate && j < notCombined.size) {
-        if (toSkip == 0 && notCombined(j).label.startsWith(current.childs(toUpdate))) {
-          notCombined(j).label = current.label + "/" + notCombined(j).label
-          toUpdate = toUpdate + 1
+      for (i <- 0 until (notCombined.size)) {
+        val current = notCombined(i)
+        var toUpdate = 0
+        var maxToUpdate = current.childs.size
+        var j = i + 1
+        var toSkip = 0
+        while (toUpdate != maxToUpdate && j < notCombined.size) {
+          if (toSkip == 0 && notCombined(j).label.startsWith(current.childs(toUpdate))) {
+            notCombined(j).label = current.label + "/" + notCombined(j).label
+            toUpdate = toUpdate + 1
+          }
+
+          if (toSkip > 0) toSkip = toSkip - 1 + notCombined(j).childs.size
+          else toSkip = toSkip + notCombined(j).childs.size
+
+          j = j + 1
         }
 
-        if (toSkip > 0) toSkip = toSkip - 1 + notCombined(j).childs.size
-        else toSkip = toSkip + notCombined(j).childs.size
-
-        j = j + 1
       }
 
+      notCombined.filter(_.ready).map(f => XPath(masterLabel + "/" + f.label + "[. " + comparison + " " +
+        typeSafeValue(f.value.get) + "]"))
     }
-
-    val filtered = notCombined.filter(_.ready).map(f => f.label + "[. " + comparison + " " +
-        typeSafeValue(f.value.get) + "]")
-
-    "(" + filtered.mkString(" and ") + ")"
   }
 
   private[this] def biulldAttributes(node: Node, comparison: String): String = {
     val transaltedAttr =
       node.attributes.asAttrMap.filterNot(_._1.startsWith("xs:"))
-          .map(attribute => "(@" + attribute._1 + " " + comparison + " " + typeSafeValue(attribute._2) + ")")
+        .map(attribute => "(@" + attribute._1 + " " + comparison + " " + typeSafeValue(attribute._2) + ")")
 
     if (!transaltedAttr.isEmpty)
       "[" + transaltedAttr.mkString(" and ") + "]"
     else ""
   }
 
-  private[this] def typeSafeValue(obj : String) : String =
-    obj match{
-    case x : String if(!x.contains("[a-zA-Z]+")) => x
-    case s : String => "\"" + s + "\""
-  }
+  private[this] def typeSafeValue(obj: String): String =
+    obj match {
+      case x: String if (x.matches("(-)?[0-9]+(.)?[0-9]+") || x.matches("(-)?[0-9]+")) => x
+      case s: String => "\"" + s + "\""
+    }
 
-  case class Path(var label: String, childs: Seq[String], value: Option[String], ready: Boolean)
+  case class PrivateXPath(var label: String, childs: Seq[String], value: Option[String], ready: Boolean)
 }
 
+case class XPath(xpath: String)

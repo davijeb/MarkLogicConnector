@@ -58,21 +58,23 @@ class BasicMarshaller() extends Marshaller {
    * Marshals single property of SpaceDocument to XML string using the grammar provided
    */
   def propertyToXML(name: String, obj: AnyRef): String = {
-    obj match {
-      case spDoc: SpaceDocument =>
-        val convertion = tryToConvertToObject(spDoc)
-        convertion.get match {
-          case x: SpaceDocument => constructElement(name, docType, toXML(spDoc, false))
-          case o: AnyRef => {
-            val entry = grammar.useGrammarToMarshall(name, o)
-            constructElement(name, entry.typ, entry.xmlRep)
+    if (obj == null) constructElement(name, "object", "")
+    else
+      obj match {
+        case spDoc: SpaceDocument =>
+          val convertion = tryToConvertToObject(spDoc)
+          convertion.get match {
+            case x: SpaceDocument => constructElement(name, docType, toXML(spDoc, false))
+            case o: AnyRef => {
+              val entry = grammar.useGrammarToMarshall(name, o)
+              constructElement(name, entry.typ, entry.xmlRep)
+            }
           }
+        case o: AnyRef => {
+          val entry = grammar.useGrammarToMarshall(name, o)
+          constructElement(name, entry.typ, entry.xmlRep)
         }
-      case o: AnyRef => {
-        val entry = grammar.useGrammarToMarshall(name, o)
-        constructElement(name, entry.typ, entry.xmlRep)
       }
-    }
   }
 
   //Helper method to create xml element for a property

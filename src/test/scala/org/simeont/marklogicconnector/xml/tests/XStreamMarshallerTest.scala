@@ -36,6 +36,13 @@ class XStreamMarshallerTest extends FunSuite {
     val string = marshaller.toXML(spaceDocument)
     assert(string === "<test xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"></test>")
   }
+  
+   test("should marshall document with null value") {
+    val spaceDocument = new SpaceDocument(docType)
+    spaceDocument.setProperty("test2", null)
+    val string = marshaller.toXML(spaceDocument)
+    assert(string === "<test xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"><test2 xs:type=\"object\"></test2></test>")
+  }
 
   test("should marshall integer in document") {
 
