@@ -37,8 +37,10 @@ class MarkLogicWriter(contentSource: ContentSource, nameSpace: String) extends W
     session.setTransactionMode(Session.TransactionMode.UPDATE)
     try {
 
-      session.insertContent(batchHolder.contents.getOrElse(Array[Content]()))
-
+      if (batchHolder.doInsert) {
+        session.insertContent(batchHolder.contents.getOrElse(Array[Content]()))
+      }
+      
       if (batchHolder.doDelete) {
         val delete = session.newAdhocQuery(batchHolder getDeleteXqueryCode nameSpace)
         session.submitRequest(delete)

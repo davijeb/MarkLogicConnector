@@ -17,9 +17,10 @@ package org.simeont.marklogicconnector.batch.tests
 
 import scala.collection.mutable.{ Map => MMap }
 import org.scalatest.FunSuite
-import org.simeont.marklogicconnector.batch.OperatinoActionProcessor
+import org.simeont.marklogicconnector.batch._
 import org.simeont.marklogicconnector.batch.action._
 import com.gigaspaces.document.SpaceDocument
+import org.simeont.marklogicconnector.factory.CustomContentFactory
 
 class OperationActionProcessorTest extends FunSuite {
 
@@ -94,5 +95,56 @@ class OperationActionProcessorTest extends FunSuite {
     OperatinoActionProcessor.add(update, index)
     OperatinoActionProcessor.add(update2, index)
     assert(index.get(COMMON_KEY).get === update2)
+  }
+
+  val customContentFactory: CustomContentFactory = new CustomContentFactory()
+  customContentFactory.setRole("admin")
+  customContentFactory.setCollections("test,test1")
+  customContentFactory.setNamespace("www.simeont.org")
+
+  test("should transfor empty action map") {
+    val actionMap: MMap[String, Action] = MMap[String, Action]()
+
+    assert(OperatinoActionProcessor.transform(actionMap, customContentFactory) ===
+      ProcecessedOperationActionHolder(None, None, None))
+  }
+  
+  test("should transfor non empty with only inserts action map") {
+    val insert = InsertAction("toInsert", doc)
+    val actionMap: MMap[String, Action] = MMap[String, Action]( "toInsert" -> insert)
+
+    val content = customContentFactory.generateContent(COMMON_KEY, doc)
+    val transformed = OperatinoActionProcessor.transform(actionMap, customContentFactory)
+    val tester = ProcecessedOperationActionHolder(Some(Array(content)), None, None)
+
+    assert(transformed.doInsert === true)
+    assert(transformed.doDelete === false)
+    assert(transformed.doUpdate === false)
+    assert(transformed.deleteIds === tester.deleteIds)
+    assert(transformed.contents.get.size === tester.contents.get.size)
+    assert(transformed.getDeleteXqueryCode("www.simeont.org") === "")
+    assert(transformed.getUpdateXqueryCode("www.simeont.org") === "")
+
+  }
+
+  test("should transfor non empty action map") {
+    val delete = DeleteAction("toDelete")
+    val insert = InsertAction("toInsert", doc)
+    val update = UpdateAction("toUpdate", doc)
+    val actionMap: MMap[String, Action] = MMap[String, Action]("toDelete" -> delete,
+      "toInsert" -> insert, "toUpdate" -> update)
+
+    val content = customContentFactory.generateContent(COMMON_KEY, doc)
+    val transformed = OperatinoActionProcessor.transform(actionMap, customContentFactory)
+    val tester = ProcecessedOperationActionHolder(Some(Array(content)), Some(List("toDelete")), None)
+
+    assert(transformed.doInsert === true)
+    assert(transformed.doDelete === true)
+    assert(transformed.doUpdate === false)
+    assert(transformed.deleteIds === tester.deleteIds)
+    assert(transformed.contents.get.size === tester.contents.get.size)
+    assert(transformed.getDeleteXqueryCode("www.simeont.org") === tester.getDeleteXqueryCode("www.simeont.org"))
+    assert(transformed.getUpdateXqueryCode("www.simeont.org") === tester.getUpdateXqueryCode("www.simeont.org"))
+
   }
 }

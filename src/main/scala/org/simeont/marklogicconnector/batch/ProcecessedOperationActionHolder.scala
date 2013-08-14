@@ -31,9 +31,9 @@ case class ProcecessedOperationActionHolder(contents: Option[Array[Content]], de
    *   Get the XQuery code for deleting
    */
   def getDeleteXqueryCode(nameSpace: String) = deleteIds match {
-    case Some(delIds) => version + "declare namespace namespace = \"" + nameSpace + "\";" +
-    "let $del := ('" + delIds.mkString("','") + "')" + " return xdmp:document-delete($del)"
     case None => ""
+    case Some(delIds) => version + "declare namespace namespace = \"" + nameSpace + "\";" +
+      "let $del := ('" + delIds.mkString("','") + "')" + " return xdmp:document-delete($del)"
   }
 
   /**
@@ -49,8 +49,7 @@ case class ProcecessedOperationActionHolder(contents: Option[Array[Content]], de
   /**
    * Check if a delete should be performed
    */
-  def doDelete = deleteIds match {
-    case Some(delIds) if !delIds.isEmpty => true
-    case _ => false
-  }
+  def doDelete = deleteIds.isDefined
+
+  def doInsert = contents.isDefined
 }

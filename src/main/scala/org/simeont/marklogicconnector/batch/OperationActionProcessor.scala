@@ -27,7 +27,7 @@ import org.simeont.marklogicconnector.batch.action._
  */
 object OperatinoActionProcessor {
 
-  def add(update: UpdateAction, index: MMap[String, Action]) : Unit = {
+  def add(update: UpdateAction, index: MMap[String, Action]): Unit = {
     index.getOrElse(update.id, None) match {
       case insert: InsertAction => insert.update(update)
       case update: UpdateAction => update.update(update)
@@ -35,11 +35,11 @@ object OperatinoActionProcessor {
     }
   }
 
-  def add(delete: DeleteAction, index: MMap[String, Action]) : Unit  = {
+  def add(delete: DeleteAction, index: MMap[String, Action]): Unit = {
     index.put(delete.id, delete)
   }
 
-  def add(insert: InsertAction, index: MMap[String, Action]) : Unit  = {
+  def add(insert: InsertAction, index: MMap[String, Action]): Unit = {
     index.put(insert.id, insert)
   }
 
@@ -50,19 +50,22 @@ object OperatinoActionProcessor {
    *
    * @param customContentFactory The factory to use to translate insert action into MarkLogic content
    */
-  def transform(actionMap: MMap[String, Action],customContentFactory: CustomContentFactory): ProcecessedOperationActionHolder = {
+  def transform(actionMap: MMap[String, Action],
+    customContentFactory: CustomContentFactory): ProcecessedOperationActionHolder = {
 
     var contents = Array[Content]()
     var deleteIds = List[String]()
     var updates = List[UpdateAction]()
 
     actionMap.values.foreach(action => action match {
-      case i: InsertAction => contents = contents.+:(customContentFactory.generateContent(i.id,i.payload))
+      case i: InsertAction => contents = contents.+:(customContentFactory.generateContent(i.id, i.payload))
       case u: UpdateAction => updates = updates.::(u)
       case d: DeleteAction => deleteIds = deleteIds.::(d.id)
       case _ => ()
     })
 
-    ProcecessedOperationActionHolder(Some(contents), Some(deleteIds), None)
+    val cont = if(contents.isEmpty) None else Some(contents)
+    val delIds = if(deleteIds.isEmpty) None else Some(deleteIds)
+    ProcecessedOperationActionHolder(cont, delIds, None)
   }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.simeont.marklogicconnector.sql.tests
+package org.simeont.marklogicconnector.sql.parser.tests
 
 import org.scalatest.FunSuite
 import org.simeont.marklogicconnector.sql.parser._
@@ -52,5 +52,9 @@ class SQLParserTest extends FunSuite {
     assert(GsSqlParser("a > ? or a < ? or b = ? or k >= ?") ===
       Or(List(Greater("a"), Less("a"), Eq("b"), GreaterEq("k"))))
     assert(GsSqlParser("a < ? and b = ? and k >= ?") === And(List(Less("a"), Eq("b"), GreaterEq("k"))))
+  }
+  
+  test("should return three if exp requires three objects"){
+   assert(Or(List(And(List(Less("a"), Eq("b"))), GreaterEq("k"))).requiredNumObjects == 3)
   }
 }
