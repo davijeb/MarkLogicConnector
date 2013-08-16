@@ -41,10 +41,10 @@ object XQueryHelper {
   def builDocumentQueringXQuery(namespace: String, url: String, root: String, xpath: String): String =
     addDefaultNamespace(namespace) + addDoc(url) + addRootElement(root) + addXPath(xpath)
 
-  private[this] def addDoc(url: String): String = "doc(" + url + ")"
+  private[this] def addDoc(url: String): String = " doc(" + url + ")"
 
   private[this] def addDefaultNamespace(namespace: String): String =
-    if (namespace != "") " declare default element namespace \"" + namespace + "\";"
+    if (namespace != "") "declare default element namespace \"" + namespace + "\";"
     else ""
 
   private[this] def addRootElement(root: String): String =

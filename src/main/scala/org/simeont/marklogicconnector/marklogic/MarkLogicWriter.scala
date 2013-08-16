@@ -40,7 +40,7 @@ class MarkLogicWriter(contentSource: ContentSource, nameSpace: String) extends W
       if (batchHolder.doInsert) {
         session.insertContent(batchHolder.contents.getOrElse(Array[Content]()))
       }
-      
+
       if (batchHolder.doDelete) {
         val delete = session.newAdhocQuery(batchHolder getDeleteXqueryCode nameSpace)
         session.submitRequest(delete)
@@ -54,7 +54,12 @@ class MarkLogicWriter(contentSource: ContentSource, nameSpace: String) extends W
       session.commit()
 
     } catch {
-      case x: Throwable => { session.rollback(); throw x }
+      case x: Throwable => {
+        session.rollback();
+        val msg = "Cannot persist changes due to " + x.getMessage()
+        logger.log(Level.SEVERE, msg)
+        throw x
+      }
     }
   }
 
