@@ -18,7 +18,7 @@ package org.simeont.marklogicconnector
 import com.marklogic.xcc.ResultSequence
 
 trait ReaderInterface {
-	def read(query : String) : Object
+	def read(query : String) : String
 
 	def readMany(query : String) : ResultSequence
 

@@ -31,20 +31,19 @@ class MarkLogicReader(contentSource: ContentSource, nameSpace: String) extends R
 
   private[this] val logger: Logger = Logger.getLogger(classOf[MarkLogicReader].getCanonicalName())
 
-  override def read(query: String): Object = {
+  override def read(query: String): String = {
     try {
       val session = contentSource.newSession()
       val request = session.newAdhocQuery(query)
       val result = session.submitRequest(request)
       if (result.hasNext())
-        result.next
+        result.next.asString()
       else
         null
     } catch {
       case x: Throwable => {
-        val msg = "Cannot execute query due to " + x.getMessage()
-        logger.log(Level.SEVERE, msg)
-        null
+        logError(x)
+        throw x
       }
     }
   }
@@ -59,26 +58,28 @@ class MarkLogicReader(contentSource: ContentSource, nameSpace: String) extends R
       session.submitRequest(request)
     } catch {
       case x: Throwable => {
-        val msg = "Cannot execute query due to " + x.getMessage()
-        logger.log(Level.SEVERE, msg)
-        null
+        logError(x)
+        throw x
       }
     }
   }
 
-  override def readSpaceTypeDescriptors(query : String) : ResultSequence = {
+  override def readSpaceTypeDescriptors(query: String): ResultSequence = {
     try {
       val session = contentSource.newSession()
       val request = session.newAdhocQuery(query)
       session.submitRequest(request)
     } catch {
       case x: Throwable => {
-        val msg = "Cannot execute query due to " + x.getMessage()
-        logger.log(Level.SEVERE, msg)
-        null
+        logError(x)
+        throw x
       }
     }
   }
 
-}
+  private[this] def logError(ex: Throwable): Unit = {
+    val msg = "Cannot execute query due to " + ex.getMessage()
+    logger.log(Level.SEVERE, msg)
+  }
+} 
 

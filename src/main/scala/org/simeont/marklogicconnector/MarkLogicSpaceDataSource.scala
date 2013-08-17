@@ -42,7 +42,7 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
     val id = idQuery.getId().toString
     val uri = XQueryHelper.buildDataUri(dirPath, typ, id)
     val query = XQueryHelper.builDocumentQueringXQuery(namespace, uri, "", "")
-    reader.read(query)
+    marshaller.fromXML(reader.read(query))
   }
 
   override def getDataIterator(query: DataSourceQuery): DataIterator[Object] = {
