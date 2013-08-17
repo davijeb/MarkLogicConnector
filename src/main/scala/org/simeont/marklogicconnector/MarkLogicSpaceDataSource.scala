@@ -29,6 +29,7 @@ import org.simeont.marklogicconnector.sql.parser._
 import org.simeont.marklogicconnector.sql.parser.ComparisonType._
 import org.simeont.marklogicconnector.xml.Marshaller
 import org.simeont.marklogicconnector.iterators._
+import java.util.logging.Level
 
 class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
   dirPath: String, namespace: String) extends SpaceDataSource {
@@ -42,10 +43,14 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
     val id = idQuery.getId().toString
     val uri = XQueryHelper.buildDataUri(dirPath, typ, id)
     val query = XQueryHelper.builDocumentQueringXQuery(namespace, uri, "", "")
-    marshaller.fromXML(reader.read(query))
+    logger.info(query)
+    try {
+      marshaller.fromXML(reader.read(query))
+    } catch { case ex: Throwable => { logError(ex); null } }
   }
 
   override def getDataIterator(query: DataSourceQuery): DataIterator[Object] = {
+
     if (query.supportsTemplateAsDocument()) {
       val doc = marshaller.toXML(query.getTemplateAsDocument())
       queryBasedOnXml(doc)
@@ -58,46 +63,66 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
     } else if (query.supportsAsSQLQuery()) {
       val sql = query.getAsSQLQuery()
       val toDecodeSQL = GsSqlParser(sql.getQuery())
-      val decodedSQL = sqlDecoder.decodeSQL(toDecodeSQL, sql.getQueryParameters().toList)
-
+      val queryParameters = if (sql.getQueryParameters() != null) sql.getQueryParameters().toList else List()
+      val decodedSQL = sqlDecoder.decodeSQL(toDecodeSQL, queryParameters)
       val queryXPath =
         XQueryHelper.builDocumentQueringXQuery(namespace, "", query.getTypeDescriptor().getTypeName(), decodedSQL)
-      logger.info(queryXPath)
-      new ObjectMLIterator(reader.readMany(queryXPath), marshaller)
+      logger.finest(queryXPath)
+      errorSafetyManyDataIteratorConstruction(queryXPath)
     } else null;
   }
 
-  private[this] def queryBasedOnXml(doc: String): ObjectMLIterator = {
+  private[this] def queryBasedOnXml(doc: String): DataIterator[Object] = {
     val node = XML.loadString(doc)
     val xpath = XmlToXPathDecoder.extractXPath(node, ComparisonType.Equal)
     val indexFriendlyXpath = xpath.map(currentPath => currentPath.xpath.replaceFirst(" " + node.label, " ."))
 
     val query = XQueryHelper.builDocumentQueringXQuery(namespace, "", node.label, indexFriendlyXpath.mkString(" and "))
-    logger.info(query)
-    new ObjectMLIterator(reader.readMany(query), marshaller)
+    logger.finest(query)
+    errorSafetyManyDataIteratorConstruction(query)
   }
 
   override def getDataIteratorByIds(idsQuery: DataSourceIdsQuery): DataIterator[Object] = {
+
     val typ = idsQuery.getTypeDescriptor().getTypeName()
-    val uris = idsQuery.getIds().map(id => XQueryHelper.buildDataUri(dirPath, typ, id.toString))
+    val uris = idsQuery.getIds().map(id =>
+      "\"" + XQueryHelper.buildDataUri(dirPath, typ, id.toString) + "\"").mkString(", ")
     val query = XQueryHelper.builDocumentQueringXQuery("", "(" + uris + ")", "", "")
-   new ObjectMLIterator(reader.readMany(query), marshaller)
+    logger.finest(query)
+    errorSafetyManyDataIteratorConstruction(query)
   }
 
   override def initialDataLoad(): DataIterator[Object] = {
     logger.info("InitialDataLoad called.")
     val dir = XQueryHelper.buildDataDir(dirPath)
     val query = XQueryHelper.buildDirectoryQuerigXQuery(dir, "infinity")
-    new ObjectMLIterator(reader.readMany(query), marshaller)
+    errorSafetyManyDataIteratorConstruction(query)
   }
 
   override def initialMetadataLoad(): DataIterator[SpaceTypeDescriptor] = {
     logger.info("InitialMetadataLoad called.")
     val dir = XQueryHelper.buildSpaceTypeDir(dirPath)
     val query = XQueryHelper.buildDirectoryQuerigXQuery(dir, "1")
-    new SpaceDescriptorMLIterator(reader.readMany(query))
+    try {
+      new SpaceDescriptorMLIterator(reader.readMany(query))
+    } catch { case ex: Throwable => { logError(ex); null } }
   }
 
   override def supportsInheritance(): Boolean = false
 
+  private[this] def errorSafetyManyDataIteratorConstruction(query: String): DataIterator[Object] = {
+    try {
+      new ObjectMLIterator(reader.readMany(query), marshaller)
+    } catch {
+      case ex: Throwable => {
+        logError(ex)
+        null
+      }
+    }
+  }
+
+  private[this] def logError(ex: Throwable): Unit = {
+    val msg = "Cannot execute query due to " + ex.getMessage() + "\n" + ex.getMessage()
+    logger.log(Level.SEVERE, msg)
+  }
 }

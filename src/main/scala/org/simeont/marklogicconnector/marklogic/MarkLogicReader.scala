@@ -81,5 +81,4 @@ class MarkLogicReader(contentSource: ContentSource, nameSpace: String) extends R
     val msg = "Cannot execute query due to " + ex.getMessage()
     logger.log(Level.SEVERE, msg)
   }
-} 
-
+}

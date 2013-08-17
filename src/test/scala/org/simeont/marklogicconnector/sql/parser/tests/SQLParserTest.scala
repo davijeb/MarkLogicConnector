@@ -20,6 +20,9 @@ import org.simeont.marklogicconnector.sql.parser._
 
 class SQLParserTest extends FunSuite {
 
+  test("should decode empty string"){
+   assert( GsSqlParser("") === Nothing())
+  }
   test("simple eq/not eq sql expression") {
     assert(GsSqlParser("a = ?") === Eq("a"))
     assert(GsSqlParser("a eq ?") === Eq("a"))

@@ -114,3 +114,5 @@ case class Like(property: String) extends Exp
  *  A not like operation needs to be performed for this property
  */
 case class NotLike(property: String) extends Exp
+
+case class Nothing() extends Exp

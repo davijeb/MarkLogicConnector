@@ -38,6 +38,7 @@ class GsSqlDecoder(marshaller: Marshaller) {
       case lesseq: LessEq => decodeOne(ComparisonType.LessEqual, data.head, lesseq.property)
       case gt: Greater => decodeOne(ComparisonType.GreaterThan, data.head, gt.property)
       case gq: GreaterEq => decodeOne(ComparisonType.GreaterEqual, data.head, gq.property)
+      case nt : Nothing => "" //Nothing can be only valid if no where clause
       case _ => "true" //TODO skiping like/notlike for now
     }
   }

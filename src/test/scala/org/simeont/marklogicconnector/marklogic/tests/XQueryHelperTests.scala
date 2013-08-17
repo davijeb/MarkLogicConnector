@@ -40,20 +40,25 @@ class XQueryHelperTests extends FunSuite {
   }
 
   test("should build document open query with only url") {
-    assert(XQueryHelper.builDocumentQueringXQuery("", "test.xml", "", "") === " doc(test.xml)")
+    assert(XQueryHelper.builDocumentQueringXQuery("", "test.xml", "", "") === " doc(\"test.xml\")")
   }
 
   test("should build document open query with only namespace and url") {
-    assert(XQueryHelper.builDocumentQueringXQuery("www.simeont.org", "test.xml", "", "") ===
-      "declare default element namespace \"www.simeont.org\"; doc(test.xml)")
+    assert(XQueryHelper.builDocumentQueringXQuery("www.simeont.org", "(\"test.xml\",\"test2.xml\")", "", "") ===
+      "declare default element namespace \"www.simeont.org\"; doc((\"test.xml\",\"test2.xml\"))")
   }
   test("should build document open query without xpath") {
     assert(XQueryHelper.builDocumentQueringXQuery("www.simeont.org", "test.xml", "root", "") ===
-      "declare default element namespace \"www.simeont.org\"; doc(test.xml)/root")
+      "declare default element namespace \"www.simeont.org\"; doc(\"test.xml\")/root")
   }
 
   test("should build document open query") {
     assert(XQueryHelper.builDocumentQueringXQuery("www.simeont.org", "test.xml", "root", "(./a[. eq \"b\")") ===
-      "declare default element namespace \"www.simeont.org\"; doc(test.xml)/root[(./a[. eq \"b\")]")
+      "declare default element namespace \"www.simeont.org\"; doc(\"test.xml\")/root[(./a[. eq \"b\")]")
+  }
+  
+  test("should build document open query without url"){
+    assert(XQueryHelper.builDocumentQueringXQuery("www.simeont.org", "", "root", "(./a[. eq \"b\")") ===
+      "declare default element namespace \"www.simeont.org\"; doc()/root[(./a[. eq \"b\")]")
   }
 }

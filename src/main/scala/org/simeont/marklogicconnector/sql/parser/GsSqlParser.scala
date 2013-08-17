@@ -19,20 +19,21 @@ import scala.util.parsing.combinator.RegexParsers
 
 object GsSqlParser extends RegexParsers {
   def sqlExp: Parser[Exp] = """([^\s(])+\s(=|(!=)|(>=)|(IN)|(<=)|>|<|(eq))\s((\([?,\s]*?\))|\?)""".r ^^ {
-    s => s match {
-      case oper : String if oper.contains(" IN ") => { val words = s.split(" IN "); In(words(0), words(1).count(_=='?'))}
-      case oper : String if oper.contains(" = ") || oper.contains(" eq ") => Eq(s.takeWhile(_!=' '))
-      case oper : String if oper.contains(" < ")  => Less(s.takeWhile(_!=' '))
-      case oper : String if oper.contains(" <= ")  => LessEq(s.takeWhile(_!=' '))
-      case oper : String if oper.contains(" >= ")  => GreaterEq(s.takeWhile(_!=' '))
-      case oper : String if oper.contains(" > ")  => Greater(s.takeWhile(_!=' '))
-      case oper : String if oper.contains(" != ")  => NotEq(s.takeWhile(_!=' '))
-      case oper : String if (oper.contains(" rlike ") ||  oper.contains(" like ") )  => Like(s.takeWhile(_!=' '))
-      case oper : String if oper.contains(" not like ")  => NotLike(s.takeWhile(_!=' '))
-    }
+    s =>
+      s match {
+        case oper: String if oper.contains(" IN ") => { val words = s.split(" IN "); In(words(0), words(1).count(_ == '?')) }
+        case oper: String if oper.contains(" = ") || oper.contains(" eq ") => Eq(s.takeWhile(_ != ' '))
+        case oper: String if oper.contains(" < ") => Less(s.takeWhile(_ != ' '))
+        case oper: String if oper.contains(" <= ") => LessEq(s.takeWhile(_ != ' '))
+        case oper: String if oper.contains(" >= ") => GreaterEq(s.takeWhile(_ != ' '))
+        case oper: String if oper.contains(" > ") => Greater(s.takeWhile(_ != ' '))
+        case oper: String if oper.contains(" != ") => NotEq(s.takeWhile(_ != ' '))
+        case oper: String if (oper.contains(" rlike ") || oper.contains(" like ")) => Like(s.takeWhile(_ != ' '))
+        case oper: String if oper.contains(" not like ") => NotLike(s.takeWhile(_ != ' '))
+      }
   }
 
-  def combination: Parser[Exp] =  sqlExp |  andCombination
+  def combination: Parser[Exp] = sqlExp | andCombination
 
   def andCombination: Parser[Exp] = combination ~ rep("and" ~ combination) ^^ {
     case number ~ list => list.foldLeft(number) {
@@ -40,17 +41,20 @@ object GsSqlParser extends RegexParsers {
     }
   }
 
-  def expr: Parser[Exp] = andCombination ~ rep( "or" ~ andCombination) ^^ {
+  def expr: Parser[Exp] = andCombination ~ rep("or" ~ andCombination) ^^ {
     case number ~ list => list.foldLeft(number) {
       case (x, "or" ~ y) => Or(List(x, y))
     }
   }
 
-  def apply(input: String): Exp = parseAll(expr, input) match {
-    case Success(result, _) => result match {
-      case oper : ConditionOperation => {oper.normilize; oper}
-      case any : Exp => any
-    }
-    case failure: NoSuccess => scala.sys.error(failure.msg)
-  }
+  def apply(input: String): Exp =
+    if (input.isEmpty()) Nothing()
+    else
+      parseAll(expr, input) match {
+        case Success(result, _) => result match {
+          case oper: ConditionOperation => { oper.normilize; oper }
+          case any: Exp => any
+        }
+        case failure: NoSuccess => scala.sys.error(failure.msg)
+      }
 }
