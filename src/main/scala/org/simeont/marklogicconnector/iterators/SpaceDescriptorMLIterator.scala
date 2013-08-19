@@ -20,9 +20,9 @@ import java.lang.Throwable
 import com.gigaspaces.datasource.DataIterator
 import com.marklogic.xcc.ResultSequence
 import com.marklogic.xcc.ResultItem
-import org.simeont.marklogicconnector.xml.SpaceTypeDescriptorMarshaller
 import com.gigaspaces.metadata.SpaceTypeDescriptor
 import org.simeont.marklogicconnector.xml.Marshaller
+import org.simeont.marklogicconnector.xml.spacedescr.SpaceTypeDescriptorMarshaller
 
 /**
  * Iterator specifically design for returning SpaceTypeDescriptors extracted from MarkLogic

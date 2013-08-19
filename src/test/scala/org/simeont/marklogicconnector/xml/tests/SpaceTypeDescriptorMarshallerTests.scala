@@ -15,6 +15,8 @@
  */
 package org.simeont.marklogicconnector.xml.tests
 
+import scala.xml.Node
+import scala.xml.XML
 import org.scalatest.FunSuite
 import com.gigaspaces.metadata.SpaceTypeDescriptor
 import com.gigaspaces.document.SpaceDocument
@@ -23,12 +25,10 @@ import com.gigaspaces.metadata.SpaceDocumentSupport
 import com.gigaspaces.metadata.StorageType
 import com.gigaspaces.metadata.index.SpaceIndex
 import com.gigaspaces.metadata.index.SpaceIndexType
-import org.simeont.marklogicconnector.xml.SpaceTypeDescriptorMarshaller
-import scala.xml.Node
-import scala.xml.XML
 import com.gigaspaces.annotation.pojo.FifoSupport
 import com.gigaspaces.annotation.pojo.SpaceClass
 import com.thoughtworks.xstream.XStream
+import org.simeont.marklogicconnector.xml.spacedescr.SpaceTypeDescriptorMarshaller
 
 class SpaceTypeDescriptorMarshallerTests extends FunSuite {
 

@@ -28,8 +28,8 @@ import org.simeont.marklogicconnector.batch.action._
 import org.simeont.marklogicconnector.factory.CustomContentFactory
 import org.simeont.marklogicconnector.batch.ProcecessedOperationActionHolder
 import org.simeont.marklogicconnector.batch.OperatinoActionProcessor
-import org.simeont.marklogicconnector.xml.SpaceTypeDescriptorMarshaller
 import org.simeont.marklogicconnector.marklogic.XQueryHelper
+import org.simeont.marklogicconnector.xml.spacedescr.SpaceTypeDescriptorMarshaller
 
 class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactory, writer: WriterInterface,
   dirPath: String) extends SpaceSynchronizationEndpoint {

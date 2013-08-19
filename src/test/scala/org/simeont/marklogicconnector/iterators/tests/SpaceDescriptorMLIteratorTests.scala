@@ -20,10 +20,10 @@ import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
 import com.marklogic.xcc.ResultSequence
 import com.gigaspaces.metadata.SpaceTypeDescriptorBuilder
-import org.simeont.marklogicconnector.xml.SpaceTypeDescriptorMarshaller
 import com.gigaspaces.annotation.pojo.SpaceClass
 import org.simeont.marklogicconnector.iterators.SpaceDescriptorMLIterator
 import com.gigaspaces.metadata.SpaceTypeDescriptor
+import org.simeont.marklogicconnector.xml.spacedescr.SpaceTypeDescriptorMarshaller
 
 class SpaceDescriptorMLIteratorTests extends FunSuite with MockitoSugar {
 
