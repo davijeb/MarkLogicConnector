@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.simeont.marklogicconnector.xml.tests
-
-import scala.xml.Node
+package org.simeont.marklogicconnector.xml.spacedescr.tests
 import scala.xml.XML
 import org.scalatest.FunSuite
 import com.gigaspaces.metadata.SpaceTypeDescriptor
-import com.gigaspaces.document.SpaceDocument
 import com.gigaspaces.metadata.SpaceTypeDescriptorBuilder
 import com.gigaspaces.metadata.SpaceDocumentSupport
 import com.gigaspaces.metadata.StorageType
-import com.gigaspaces.metadata.index.SpaceIndex
 import com.gigaspaces.metadata.index.SpaceIndexType
 import com.gigaspaces.annotation.pojo.FifoSupport
 import com.gigaspaces.annotation.pojo.SpaceClass
-import com.thoughtworks.xstream.XStream
 import org.simeont.marklogicconnector.xml.spacedescr.SpaceTypeDescriptorMarshaller
 
 class SpaceTypeDescriptorMarshallerTests extends FunSuite {
@@ -48,7 +43,7 @@ class SpaceTypeDescriptorMarshallerTests extends FunSuite {
     val marshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(
       builder.routingProperty("routing", SpaceIndexType.EXTENDED).create)
     XML.loadString(marshalled)
-
+    println(marshalled)
   }
 
   test("should unmarshall xml to SpaceTypeDescriptor") {
@@ -105,8 +100,8 @@ class SpaceTypeDescriptorMarshallerTests extends FunSuite {
       SpaceTypeDescriptorMarshaller.marshallSpaceDesc(innerDesc)))
     val next = iterator.next
     val last = iterator.next
-    
-    if (next.getTypeName() == "org.simeont.marklogicconnector.xml.tests.Data") {
+
+    if (next.getTypeName() == classOf[Data].getName) {
       compareSpaceTypes(next, desc)
       compareSpaceTypes(last, innerDesc)
     } else {
@@ -114,7 +109,6 @@ class SpaceTypeDescriptorMarshallerTests extends FunSuite {
       compareSpaceTypes(next, innerDesc)
     }
   }
-
 
   private[this] def compareSpaceTypes(t1: SpaceTypeDescriptor, t2: SpaceTypeDescriptor): Unit = {
     assert(t1.getDocumentWrapperClass() === t2.getDocumentWrapperClass())
@@ -136,7 +130,7 @@ class SpaceTypeDescriptorMarshallerTests extends FunSuite {
     assert(t1.supportsDynamicProperties() === t2.supportsDynamicProperties)
     assert(t1.supportsOptimisticLocking() === t2.supportsOptimisticLocking)
   }
-  
+
 }
 
 @SpaceClass class Data()

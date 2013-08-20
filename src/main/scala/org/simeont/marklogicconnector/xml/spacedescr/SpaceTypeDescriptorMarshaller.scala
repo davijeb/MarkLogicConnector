@@ -40,50 +40,27 @@ object SpaceTypeDescriptorMarshaller extends XmlNames {
   /**
    * Marshals single SpaceTypeDescriptor
    */
-  def marshallSpaceDesc(desc: SpaceTypeDescriptor): String = {
-    val head = "<spacedesc " +
-      superTypeName + commentFriendlyEqAndQuote + desc.getSuperTypeName + commentFriendlyQuote +
-      typeName + commentFriendlyEqAndQuote + desc.getTypeName + commentFriendlyQuote +
-      typeSimpleName + commentFriendlyEqAndQuote + desc.getTypeSimpleName + commentFriendlyQuote +
-      idAttName + commentFriendlyEqAndQuote + desc.getIdPropertyName + commentFriendlyQuote +
-      routingAttName + commentFriendlyEqAndQuote + desc.getRoutingPropertyName + commentFriendlyQuote +
-      dynamicPropertiesAttName + commentFriendlyEqAndQuote + desc.supportsDynamicProperties + commentFriendlyQuote +
-      optimisticLockingAttName + commentFriendlyEqAndQuote + desc.supportsOptimisticLocking + commentFriendlyQuote +
-      autoGenerateIdAttName + commentFriendlyEqAndQuote + desc.isAutoGenerateId + commentFriendlyQuote +
-      replicableAttName + commentFriendlyEqAndQuote + desc.isReplicable + commentFriendlyQuote +
-      storageTypeAttName + commentFriendlyEqAndQuote + desc.getStorageType + commentFriendlyQuote +
-      fifoGroupingPropertyPathAttName + commentFriendlyEqAndQuote +
-      desc.getFifoGroupingPropertyPath + commentFriendlyQuote +
-      fifoSupportAttName + commentFriendlyEqAndQuote + desc.getFifoSupport + commentFriendlyQuote +
-      "concreteType=\"" + desc.isConcreteType() + "\">"
-
-    val end = "</spacedesc>"
-
-    val fifoGroupingIndexesPaths =
-      "<" + fifoGroupingIndexesPathsElName + ">" + xstream.toXML(desc.getFifoGroupingIndexesPaths()) +
-        "</" + fifoGroupingIndexesPathsElName + ">"
-
-    val documentWrapperClass =
-      "<" + documentWrapperClassElName + ">" + xstream.toXML(desc.getDocumentWrapperClass()) +
-        "</" + documentWrapperClassElName + ">"
-
-    val objectClass =
-      "<" + objectClassElName + ">" + xstream.toXML(desc.getObjectClass()) +
-        "</" + objectClassElName + ">"
-
-    val fixedProperties: String =
-      "<" + fixedPropsElName + ">" +
-        (for (i <- 0 until desc.getNumOfFixedProperties())
-          yield fixedPropertyToXml(desc.getFixedProperty(i))).mkString +
-        "</" + fixedPropsElName + ">"
-
-    val indexProperties: String =
-      "<" + indexPropsElName + ">" +
-        desc.getIndexes().map(pair => indexToXml(pair._2)).mkString +
-        "</" + indexPropsElName + ">"
-
-    head + fifoGroupingIndexesPaths + fixedProperties + indexProperties + documentWrapperClass + objectClass + end
-  }
+  def marshallSpaceDesc(desc: SpaceTypeDescriptor): String =
+    new DescriptorXmlBuilder()
+      .addSuperType(desc.getSuperTypeName)
+      .addType(desc.getTypeName)
+      .addSimpleType(desc.getTypeSimpleName)
+      .addId(desc.getIdPropertyName)
+      .addRouting(desc.getRoutingPropertyName)
+      .addDynamicProp(desc.supportsDynamicProperties.toString)
+      .addOptimisticLocking(desc.supportsOptimisticLocking.toString)
+      .addAutoGenerateId(desc.isAutoGenerateId.toString)
+      .addReplicable(desc.isReplicable.toString)
+      .addStorageType(desc.getStorageType.toString)
+      .addFifoGrouping(desc.getFifoGroupingPropertyPath)
+      .addFifoSupport(desc.getFifoSupport.toString)
+      .addFifoGroupingIndexesPaths(xstream.toXML(desc.getFifoGroupingIndexesPaths()))
+      .addDocumentWrapperClass(xstream.toXML(desc.getDocumentWrapperClass()))
+      .addObjectClass(xstream.toXML(desc.getObjectClass()))
+      .addFixedProperties((for (i <- 0 until desc.getNumOfFixedProperties())
+        yield fixedPropertyToXml(desc.getFixedProperty(i))).mkString)
+      .addIndexProperties(desc.getIndexes().map(pair => indexToXml(pair._2)).mkString)
+      .buildXml
 
   private[this] def fixedPropertyToXml(sPropertyDescriptor: SpacePropertyDescriptor): String = {
     val head =
