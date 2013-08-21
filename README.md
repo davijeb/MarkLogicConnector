@@ -3,14 +3,22 @@ MarkLogicConnector for GigaSpaces
 
 GigaSpace interface to MarkLogic
 
-Code Name Tank Buster
+Code Name: Tank Buster
 
-Work in progress.
+1) Status: Working with some limitations.
 
-Initial load for meta and data present.
+2) Supported features: 
+* Initial load of metadata and data.
+* Persistence for metadata.
+* Persistence for data
+* Querying based on templates
+* Limited SQL support
 
-Persistens of meta data present.
+2) Not supported features:
+* SQL like,notlike and path queries
+* Delete by UID
+* Partial update
 
-Inserting and deleting data from space present.
+3) Works with GigaSpaces 9.6, MarkLogic 6, XCC 6.3 and Scala 2.10
 
-Does not support partial updates.
+ Check wiki for more information
