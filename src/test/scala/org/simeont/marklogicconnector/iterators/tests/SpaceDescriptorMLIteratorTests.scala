@@ -52,7 +52,7 @@ class SpaceDescriptorMLIteratorTests extends FunSuite with MockitoSugar {
      assert(iterator.next() === null)
   }
 
-  test("should return all SpaceTypeDescriptors when there are many returned from ML") {
+  test("should return one SpaceTypeDescriptors when there is only one returned from ML") {
     val testSpecificResultSequence = mock[ResultSequence]
     when(testSpecificResultSequence.asStrings).thenReturn(oneItemClassResultArray)
 
@@ -68,7 +68,7 @@ class SpaceDescriptorMLIteratorTests extends FunSuite with MockitoSugar {
     assert(iterator.next() === null)
   }
 
-  test("should return one SpaceTypeDescriptors when there is only one returned from ML") {
+  test("should return all SpaceTypeDescriptors when there are many returned from ML") {
     val testSpecificResultSequence = mock[ResultSequence]
     when(testSpecificResultSequence.asStrings).thenReturn(manyItemsResultArray)
 

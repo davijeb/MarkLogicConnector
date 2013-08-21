@@ -69,8 +69,12 @@ class SpaceTypeDescriptorMarshallerTests extends FunSuite {
     val supMarshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(sup)
     val marshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(spacedesc)
     val unMarshalled = SpaceTypeDescriptorMarshaller.unmarshallAllSpaceDesc(Array(supMarshalled, marshalled))
-    unMarshalled.next
-    compareSpaceTypes(unMarshalled.next, spacedesc)
+    val first = unMarshalled.next
+    val last = unMarshalled.next
+    if (first.getTypeName() == "Test2")
+      compareSpaceTypes(first, spacedesc)
+    else
+      compareSpaceTypes(last, spacedesc)
   }
 
   test("should unmarshall xml to SpaceTypeDescriptor with Fifo ON") {
