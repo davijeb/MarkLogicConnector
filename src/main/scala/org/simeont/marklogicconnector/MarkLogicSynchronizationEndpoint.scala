@@ -80,7 +80,7 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
             case DataSyncOperationType.PARTIAL_UPDATE =>
               OperatinoActionProcessor.add(UpdateAction(uid, entry.getDataAsDocument), operatinoDataMap)
             case DataSyncOperationType.REMOVE_BY_UID => () //TODO
-            case DataSyncOperationType.CHANGE => () //TODO
+            case DataSyncOperationType.CHANGE => () //Not Supported
           }
         })
 

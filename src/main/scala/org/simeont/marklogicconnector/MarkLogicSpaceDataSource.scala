@@ -35,7 +35,7 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
   dirPath: String, namespace: String) extends SpaceDataSource {
 
   private[this] val logger: Logger = Logger.getLogger(classOf[MarkLogicSpaceDataSource].getCanonicalName())
-  private[this] val privateConverter = DocumentObjectConverterInternal.instance()
+  private[this] val privateConverter = DocumentObjectConverterInternal.instance() //Gs Internal access
   private[this] val sqlDecoder = new GsSqlDecoder(marshaller)
 
   override def getById(idQuery: DataSourceIdQuery): Object = {
@@ -43,7 +43,7 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
     val id = idQuery.getId().toString
     val uri = XQueryHelper.buildDataUri(dirPath, typ, id)
     val query = XQueryHelper.builDocumentQueringXQuery(namespace, uri, "", "")
-    logger.info(query)
+    logger.finest(query)
     try {
       marshaller.fromXML(reader.read(query))
     } catch { case ex: Throwable => { logError(ex); null } }
