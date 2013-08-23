@@ -27,6 +27,10 @@ import com.gigaspaces.document.SpaceDocument
  */
 class ObjectMLIterator(resultSequence: ResultSequence, xmlMarshaller: Marshaller) extends DataIterator[Object] {
 
+  def this() = {
+    this(new EmptyResultSequenceImpl, null)
+
+  }
   private[this] val logger: Logger = Logger.getLogger(classOf[ObjectMLIterator].getCanonicalName())
 
   private[this] val waitTime = 25
@@ -56,4 +60,34 @@ class ObjectMLIterator(resultSequence: ResultSequence, xmlMarshaller: Marshaller
 
   override def remove = ()
 
+}
+
+/**
+ *  Used to create empty data iterators, when error occur
+ */
+class EmptyResultSequenceImpl extends ResultSequence {
+  def close(): Unit = ()
+  def current(): com.marklogic.xcc.ResultItem = null
+  def getChannel(x$1: com.marklogic.xcc.ResultChannelName): com.marklogic.xcc.ResultSequence = null
+  def hasNext(): Boolean = false
+  def isCached(): Boolean = false
+  def isClosed(): Boolean = false
+  def itemAt(x$1: Int): com.marklogic.xcc.types.XdmItem = null
+  def iterator(): java.util.Iterator[com.marklogic.xcc.ResultItem] = null
+  def next(): com.marklogic.xcc.ResultItem = null
+  def resultItemAt(x$1: Int): com.marklogic.xcc.ResultItem = null
+  def rewind(): Unit = ()
+  def size(): Int = 0
+  def toCached(): com.marklogic.xcc.ResultSequence = null
+  def toResultItemArray(): Array[com.marklogic.xcc.ResultItem] = null
+
+  // Members declared in com.marklogic.xcc.types.Xdm Sequence
+  def asString(): String = null
+  def asString(x$1: String): String = null
+  def asStrings(): Array[String] = null
+  def isEmpty(): Boolean = true
+  def toArray(): Array[com.marklogic.xcc.types.XdmItem] = null
+
+  // Members declared in com.marklogic.xcc.types.XdmValue
+  def getValueType(): com.marklogic.xcc.types.ValueType = null
 }

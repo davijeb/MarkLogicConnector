@@ -43,7 +43,6 @@ class SpaceTypeDescriptorMarshallerTests extends FunSuite {
     val marshalled = SpaceTypeDescriptorMarshaller.marshallSpaceDesc(
       builder.routingProperty("routing", SpaceIndexType.EXTENDED).create)
     XML.loadString(marshalled)
-    println(marshalled)
   }
 
   test("should unmarshall xml to SpaceTypeDescriptor") {

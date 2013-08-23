@@ -18,10 +18,10 @@ package org.simeont.marklogicconnector
 import com.marklogic.xcc.ResultSequence
 
 trait ReaderInterface {
-	def read(query : String) : String
+  def read(query: String): String
 
-	def readMany(query : String) : ResultSequence
+  def readMany(query: String): ResultSequence
 
-	def readSpaceTypeDescriptors(query : String) : ResultSequence
+  def readSpaceTypeDescriptors(query: String): ResultSequence
 
 }

@@ -45,7 +45,9 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
     val query = XQueryHelper.builDocumentQueringXQuery(namespace, uri, "", "")
     logger.finest(query)
     try {
-      marshaller.fromXML(reader.read(query))
+      val data = reader.read(query)
+      if (data == null) data
+      else marshaller.fromXML(data)
     } catch { case ex: Throwable => { logError(ex); null } }
   }
 
@@ -69,7 +71,7 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
         XQueryHelper.builDocumentQueringXQuery(namespace, "", query.getTypeDescriptor().getTypeName(), decodedSQL)
       logger.finest(queryXPath)
       errorSafetyManyDataIteratorConstruction(queryXPath)
-    } else null;
+    } else new ObjectMLIterator;
   }
 
   private[this] def queryBasedOnXml(doc: String): DataIterator[Object] = {
@@ -96,16 +98,16 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
     logger.info("InitialDataLoad called.")
     val dir = XQueryHelper.buildDataDir(dirPath)
     val query = XQueryHelper.buildDirectoryQuerigXQuery(dir, "infinity")
-    errorSafetyManyDataIteratorConstruction(query)
+    new ObjectMLIterator(reader.readMany(query), marshaller)
   }
 
   override def initialMetadataLoad(): DataIterator[SpaceTypeDescriptor] = {
     logger.info("InitialMetadataLoad called.")
     val dir = XQueryHelper.buildSpaceTypeDir(dirPath)
     val query = XQueryHelper.buildDirectoryQuerigXQuery(dir, "1")
-    try {
-      new SpaceDescriptorMLIterator(reader.readMany(query))
-    } catch { case ex: Throwable => { logError(ex); null } }
+
+    new SpaceDescriptorMLIterator(reader.readSpaceTypeDescriptors(query))
+
   }
 
   override def supportsInheritance(): Boolean = false
@@ -116,7 +118,7 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
     } catch {
       case ex: Throwable => {
         logError(ex)
-        null
+        new ObjectMLIterator()
       }
     }
   }
