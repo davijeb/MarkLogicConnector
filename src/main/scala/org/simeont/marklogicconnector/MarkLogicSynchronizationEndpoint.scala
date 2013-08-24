@@ -95,8 +95,8 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
             case DataSyncOperationType.CHANGE => () //Not Supported
           }
         })
-
-      writer persistAll OperatinoActionProcessor.transform(operatinoDataMap, customContentFactory)
+      transformedOperatinoData = Option(OperatinoActionProcessor.transform(operatinoDataMap, customContentFactory))
+      writer persistAll transformedOperatinoData.get
     } catch {
       case ex: Throwable => processFailure(dataItems, transformedOperatinoData, ex)
     }
@@ -107,8 +107,29 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
    */
   def processFailure(batchData: Array[com.gigaspaces.sync.DataSyncOperation],
     transformedOperatinoData: Option[ProcecessedOperationActionHolder], ex: Throwable) = {
-    //TODO Do something
-    ex.printStackTrace()
+    //Best to be overridden to match specific needs
+    if (transformedOperatinoData.isDefined) {
+      try {
+        val insert = ProcecessedOperationActionHolder(transformedOperatinoData.get.contents, None, None)
+        writer persistAll insert
+      } catch { case exc: Throwable => logError("ProcessFailure on insertion", exc) }
+      try {
+        val delete = ProcecessedOperationActionHolder(None, transformedOperatinoData.get.deleteIds, None)
+        writer persistAll delete
+      } catch {
+        case exc: Throwable => {
+          if (transformedOperatinoData.get.deleteIds.isDefined)
+            logger.warning("Could not delete data with ids: " + transformedOperatinoData.get.deleteIds.get)
+          logError("ProcessFailure on deletion", exc)
+        }
+      }
+      try {
+        val update = ProcecessedOperationActionHolder(None, None, transformedOperatinoData.get.updates)
+        writer persistAll update
+      } catch { case exc: Throwable => logError("ProcessFailure on updates", exc) }
+    } else
+      logError("Cannot create ProcecessedOperationActionHolder", ex)
+
   }
 
   override def onTransactionConsolidationFailure(participantData: ConsolidationParticipantData) = {
