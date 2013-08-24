@@ -52,4 +52,5 @@ case class ProcecessedOperationActionHolder(contents: Option[Array[Content]], de
   def doDelete = deleteIds.isDefined
 
   def doInsert = contents.isDefined
+
 }

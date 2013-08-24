@@ -15,28 +15,28 @@
  */
 package org.simeont.marklogicconnector.tests
 
+import scala.xml.XML
 import org.scalatest.FunSuite
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
 import org.mockito.Matchers
+import com.gigaspaces.datasource.DataSourceQuery
+import com.gigaspaces.datasource.DataSourceIdQuery
+import com.gigaspaces.datasource.DataSourceIdsQuery
+import com.gigaspaces.document.SpaceDocument
 import com.gigaspaces.metadata.SpaceTypeDescriptor
 import com.gigaspaces.metadata.SpaceTypeDescriptorBuilder
 import com.marklogic.xcc.ResultSequence
+import com.marklogic.xcc.exceptions.RequestException
+import com.marklogic.xcc.Request
+import com.marklogic.xcc.ResultItem
 import org.simeont.marklogicconnector.xml.BasicMarshaller
 import org.simeont.marklogicconnector.xml.spacedescr.SpaceTypeDescriptorMarshaller
 import org.simeont.marklogicconnector.marklogic.MarkLogicReader
 import org.simeont.marklogicconnector.marklogic.XQueryHelper
 import org.simeont.marklogicconnector.MarkLogicSpaceDataSource
-import com.marklogic.xcc.exceptions.RequestException
-import com.marklogic.xcc.Request
-import com.gigaspaces.document.SpaceDocument
-import com.marklogic.xcc.ResultItem
-import com.gigaspaces.datasource.DataSourceIdQuery
-import com.gigaspaces.datasource.DataSourceIdsQuery
 import org.simeont.marklogicconnector.iterators.ObjectMLIterator
-import com.gigaspaces.datasource.DataSourceQuery
 import org.simeont.marklogicconnector.sql.parser.XmlToXPathDecoder
-import scala.xml.XML
 import org.simeont.marklogicconnector.sql.parser.ComparisonType
 import com.gigaspaces.internal.document.DocumentObjectConverterInternal
 import com.gigaspaces.datasource.DataSourceSQLQuery

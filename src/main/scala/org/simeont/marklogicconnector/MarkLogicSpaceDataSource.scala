@@ -124,7 +124,7 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
   }
 
   private[this] def logError(ex: Throwable): Unit = {
-    val msg = "Cannot execute query due to " + ex.getMessage() + "\n" + ex.getMessage()
+    val msg = "Cannot execute query due to " + ex.getMessage() + "\n" + ex.getCause()
     logger.log(Level.SEVERE, msg)
   }
 }

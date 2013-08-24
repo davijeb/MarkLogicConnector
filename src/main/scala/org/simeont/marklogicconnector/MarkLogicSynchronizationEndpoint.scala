@@ -30,6 +30,7 @@ import org.simeont.marklogicconnector.batch.ProcecessedOperationActionHolder
 import org.simeont.marklogicconnector.batch.OperatinoActionProcessor
 import org.simeont.marklogicconnector.marklogic.XQueryHelper
 import org.simeont.marklogicconnector.xml.spacedescr.SpaceTypeDescriptorMarshaller
+import java.util.logging.Level
 
 class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactory, writer: WriterInterface,
   dirPath: String) extends SpaceSynchronizationEndpoint {
@@ -40,16 +41,27 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
    * SpaceTypeDescriptor related persistence
    */
   override def onIntroduceType(introduceTypeData: IntroduceTypeData) = {
-    val typeXML = SpaceTypeDescriptorMarshaller marshallSpaceDesc introduceTypeData.getTypeDescriptor()
-    val uri = XQueryHelper.buildSpaceTypeUri(dirPath, introduceTypeData.getTypeDescriptor().getTypeName())
-    writer.persistSpaceDescriptor(customContentFactory.generateContent(uri, typeXML))
-
+    try {
+      val typeXML = SpaceTypeDescriptorMarshaller marshallSpaceDesc introduceTypeData.getTypeDescriptor()
+      val uri = XQueryHelper.buildSpaceTypeUri(dirPath, introduceTypeData.getTypeDescriptor().getTypeName())
+      writer.persistSpaceDescriptor(customContentFactory.generateContent(uri, typeXML))
+    } catch {
+      case ex: Throwable => {
+        logError("onIntroduceType", ex)
+      }
+    }
   }
 
   override def onAddIndex(addIndexData: AddIndexData) = {
-    val uri = XQueryHelper.buildSpaceTypeUri(dirPath, addIndexData.getTypeName())
-    addIndexData.getIndexes().foreach(index =>
-      writer.addElementToDocument(uri, "/spacedesc/indexes", SpaceTypeDescriptorMarshaller indexToXml (index)))
+    try {
+      val uri = XQueryHelper.buildSpaceTypeUri(dirPath, addIndexData.getTypeName())
+      addIndexData.getIndexes().foreach(index =>
+        writer.addElementToDocument(uri, "/spacedesc/indexes", SpaceTypeDescriptorMarshaller indexToXml (index)))
+    } catch {
+      case ex: Throwable => {
+        logError("onAddIndex", ex)
+      }
+    }
   }
 
   /*
@@ -84,8 +96,7 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
           }
         })
 
-      transformedOperatinoData = Option(OperatinoActionProcessor.transform(operatinoDataMap, customContentFactory))
-      writer persistAll transformedOperatinoData.get
+      writer persistAll OperatinoActionProcessor.transform(operatinoDataMap, customContentFactory)
     } catch {
       case ex: Throwable => processFailure(dataItems, transformedOperatinoData, ex)
     }
@@ -117,5 +128,10 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
   override def afterTransactionSynchronization(transactionData: TransactionData) = {
     // TODO Auto-generated method stub
     super.afterTransactionSynchronization(transactionData);
+  }
+
+  private[this] def logError(method: String, ex: Throwable): Unit = {
+    val msg = "Cannot execute method " + method + " due to " + ex.getMessage()
+    logger.log(Level.SEVERE, msg)
   }
 }
