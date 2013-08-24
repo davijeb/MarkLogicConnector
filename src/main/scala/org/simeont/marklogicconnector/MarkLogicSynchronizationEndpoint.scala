@@ -80,8 +80,7 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
       dataItems.foreach(entry =>
         {
           val typ = entry.getTypeDescriptor().getTypeName()
-          val idField = entry.getTypeDescriptor().getIdPropertyName()
-          val idValue = (entry.getDataAsDocument().getProperty(idField)).toString
+          val idValue = if(entry.supportsGetSpaceId()) entry.getSpaceId.toString else entry.getUid()
           val uid = XQueryHelper.buildDataUri(dirPath, typ, idValue)
 
           entry.getDataSyncOperationType() match {
@@ -91,7 +90,8 @@ class MarkLogicSynchronizationEndpoint(customContentFactory: CustomContentFactor
               OperatinoActionProcessor.add(DeleteAction(uid), operatinoDataMap)
             case DataSyncOperationType.PARTIAL_UPDATE =>
               OperatinoActionProcessor.add(UpdateAction(uid, entry.getDataAsDocument), operatinoDataMap)
-            case DataSyncOperationType.REMOVE_BY_UID => () //TODO
+            case DataSyncOperationType.REMOVE_BY_UID =>
+              OperatinoActionProcessor.add(DeleteAction(uid), operatinoDataMap)
             case DataSyncOperationType.CHANGE => () //Not Supported
           }
         })

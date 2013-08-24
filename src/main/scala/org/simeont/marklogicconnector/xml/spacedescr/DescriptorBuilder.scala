@@ -82,8 +82,10 @@ class DescriptorBuilder(var descriptorBuilder: SpaceTypeDescriptorBuilder,
         indexProp.get match { case x: Seq[IndexHolder] => x; case _ => throw new ClassCastException }
       indexPropArray.foreach(ind => {
         if (!superIndexs.containsKey(ind.key))
+          try{
           if (ind.pathKey) descriptorBuilder = descriptorBuilder.addPathIndex(ind.key, ind.index)
           else descriptorBuilder = descriptorBuilder.addPropertyIndex(ind.key, ind.index)
+          } catch {case _ : Throwable => () } // index already added
       })
     }
     this

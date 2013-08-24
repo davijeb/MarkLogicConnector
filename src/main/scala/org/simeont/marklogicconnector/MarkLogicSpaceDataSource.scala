@@ -43,7 +43,7 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
     val id = idQuery.getId().toString
     val uri = XQueryHelper.buildDataUri(dirPath, typ, id)
     val query = XQueryHelper.builDocumentQueringXQuery(namespace, uri, "", "")
-    logger.finest(query)
+    logger.finer(query)
     try {
       val data = reader.read(query)
       if (data == null) data
@@ -69,7 +69,7 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
       val decodedSQL = sqlDecoder.decodeSQL(toDecodeSQL, queryParameters)
       val queryXPath =
         XQueryHelper.builDocumentQueringXQuery(namespace, "", query.getTypeDescriptor().getTypeName(), decodedSQL)
-      logger.finest(queryXPath)
+      logger.finer(queryXPath)
       errorSafetyManyDataIteratorConstruction(queryXPath)
     } else new ObjectMLIterator;
   }
@@ -80,7 +80,7 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
     val indexFriendlyXpath = xpath.map(currentPath => currentPath.xpath.replaceFirst(" " + node.label, " ."))
 
     val query = XQueryHelper.builDocumentQueringXQuery(namespace, "", node.label, indexFriendlyXpath.mkString(" and "))
-    logger.finest(query)
+    logger.finer(query)
     errorSafetyManyDataIteratorConstruction(query)
   }
 
@@ -90,7 +90,7 @@ class MarkLogicSpaceDataSource(marshaller: Marshaller, reader: ReaderInterface,
     val uris = idsQuery.getIds().map(id =>
       "\"" + XQueryHelper.buildDataUri(dirPath, typ, id.toString) + "\"").mkString(", ")
     val query = XQueryHelper.builDocumentQueringXQuery("", "(" + uris + ")", "", "")
-    logger.finest(query)
+    logger.finer(query)
     errorSafetyManyDataIteratorConstruction(query)
   }
 

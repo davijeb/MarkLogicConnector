@@ -125,7 +125,7 @@ class MarkLogicSynchronizationEndpointTests extends FunSuite with MockitoSugar {
     writer.onAddIndex(mockIndexData)
   }
 
-  test("should persiste actions") {
+  test("should persist actions") {
 
     val doc = new SpaceDocument(typ).setProperty("id", "id")
     val doc2 = new SpaceDocument(typ).setProperty("id", "id2")
@@ -151,18 +151,34 @@ class MarkLogicSynchronizationEndpointTests extends FunSuite with MockitoSugar {
     when(mockDataSyncO5.getDataAsDocument()).thenReturn(doc2)
     when(mockDataSyncO6.getDataAsDocument()).thenReturn(doc2)
 
+    when(mockDataSyncO1.supportsGetSpaceId()).thenReturn(true)
+    when(mockDataSyncO2.supportsGetSpaceId()).thenReturn(true)
+    when(mockDataSyncO3.supportsGetSpaceId()).thenReturn(true)
+    when(mockDataSyncO4.supportsGetSpaceId()).thenReturn(true)
+    when(mockDataSyncO5.supportsGetSpaceId()).thenReturn(false)
+    when(mockDataSyncO6.supportsGetSpaceId()).thenReturn(true)
+
+    when(mockDataSyncO1.getSpaceId()).thenReturn("id", "id")
+    when(mockDataSyncO2.getSpaceId()).thenReturn("id", "id")
+    when(mockDataSyncO3.getSpaceId()).thenReturn("id", "id")
+    when(mockDataSyncO4.getSpaceId()).thenReturn("id2", "id2")
+    when(mockDataSyncO5.getSpaceId()).thenReturn("id2", "id2")
+    when(mockDataSyncO6.getSpaceId()).thenReturn("id2", "id2")
+
     when(mockDataSyncO1.getDataSyncOperationType()).thenReturn(DataSyncOperationType.WRITE)
     when(mockDataSyncO2.getDataSyncOperationType()).thenReturn(DataSyncOperationType.UPDATE)
     when(mockDataSyncO3.getDataSyncOperationType()).thenReturn(DataSyncOperationType.PARTIAL_UPDATE)
     when(mockDataSyncO4.getDataSyncOperationType()).thenReturn(DataSyncOperationType.REMOVE)
     when(mockDataSyncO5.getDataSyncOperationType()).thenReturn(DataSyncOperationType.REMOVE_BY_UID)
-    when(mockDataSyncO5.getDataSyncOperationType()).thenReturn(DataSyncOperationType.CHANGE)
+    when(mockDataSyncO6.getDataSyncOperationType()).thenReturn(DataSyncOperationType.CHANGE)
 
-    val data = Array(mockDataSyncO1, mockDataSyncO2, mockDataSyncO3, mockDataSyncO4, mockDataSyncO5)
+    when(mockDataSyncO5.getUid()).thenReturn("nothing-g")
+
+    val data = Array(mockDataSyncO1, mockDataSyncO2, mockDataSyncO3, mockDataSyncO4, mockDataSyncO5, mockDataSyncO6)
 
     val processed = ProcecessedOperationActionHolder(Some(Array(new ContentWrapperWithEquals(
       customContentFactory.generateContent(XQueryHelper.buildDataUri(dir, typ, "id"), doc)))),
-      Some(List(XQueryHelper.buildDataUri(dir, typ, "id2"))), None)
+      Some(List(XQueryHelper.buildDataUri(dir, typ, "nothing-g"), XQueryHelper.buildDataUri(dir, typ, "id2"))), None)
 
     val operationsBatchData = mock[OperationsBatchData]
     val transactionData = mock[TransactionData]
