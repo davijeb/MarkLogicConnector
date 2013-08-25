@@ -35,9 +35,9 @@ class GsSqlDecoderTests extends FunSuite {
     assert(decoded.decodeSQL(NotEq("a"), data) === "(./a[. != \"b\"])")
   }
 
-  test("should decode In sql"){
+  test("should decode In sql") {
 
-     assert(decoded.decodeSQL(In("a",2), data.slice(0,2)) === "( (./a[. eq \"b\"]) or (./a[. eq \"c\"]) )")
+    assert(decoded.decodeSQL(In("a", 2), data.slice(0, 2)) === "( (./a[. eq \"b\"]) or (./a[. eq \"c\"]) )")
   }
 
   test("should decode complex sql") {
@@ -48,6 +48,12 @@ class GsSqlDecoderTests extends FunSuite {
     exp = Or(List(And(List(Less("a"), Greater("a"))), Greater("a")))
 
     assert(decoded.decodeSQL(exp, data) === "( ( (./a[. < \"b\"]) and (./a[. > \"c\"]) ) or (./a[. > \"d\"]) )")
+  }
+
+  test("should stub path sql") {
+    var exp: Exp = And(List(Less("a"), Greater("a.bs")))
+
+    assert(decoded.decodeSQL(exp, data) === "( (./a[. < \"b\"]) and ./a )")
   }
 
 }
