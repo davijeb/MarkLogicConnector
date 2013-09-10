@@ -3,6 +3,8 @@ MarkLogicConnector for GigaSpaces
 
 GigaSpace interface to MarkLogic
 
+Licensed under Apache License Version 2.0 
+
 Code Name: Tank Buster
 
 1) Status: Working with some limitations.
